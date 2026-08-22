@@ -7,6 +7,7 @@ from uuid import uuid4
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Request, UploadFile, status
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel, Field
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session, selectinload
 
@@ -18,6 +19,7 @@ from app.models.complaint import Complaint
 from app.models.complaint_update import ComplaintUpdate
 from app.models.department import Department
 from app.models.user import User
+from app.services.analyzer_service import analyze_complaint
 from app.services.auth_service import authenticate_user, create_user
 
 router = APIRouter(prefix="", tags=["auth"])
@@ -32,6 +34,12 @@ STATUS_LABELS = {
     "resolved": "تم الحل",
     "closed": "مغلق",
 }
+
+
+class ComplaintAnalysisRequest(BaseModel):
+    text: str = Field(min_length=3)
+    area: str | None = None
+    governorate: str | None = None
 
 
 def get_current_user(request: Request, db: Session = Depends(get_db)) -> User | None:
@@ -257,6 +265,14 @@ async def complaint_form_page(request: Request, user: User = Depends(require_rol
     )
 
 
+@router.post("/api/complaints/analyze")
+async def analyze_complaint_api(
+    payload: ComplaintAnalysisRequest,
+    user: User = Depends(require_role("citizen")),
+):
+    return analyze_complaint(payload.text, area=payload.area, governorate=payload.governorate)
+
+
 @router.post("/citizen/complaints/new")
 async def complaint_form_submit(
     request: Request,
@@ -269,6 +285,7 @@ async def complaint_form_submit(
     latitude: str | None = Form(None),
     longitude: str | None = Form(None),
     image: UploadFile | None = File(None),
+    accept_analysis: bool = Form(False),
     user: User = Depends(require_role("citizen")),
     db: Session = Depends(get_db),
 ):
@@ -327,9 +344,17 @@ async def complaint_form_submit(
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
+    analysis = analyze_complaint(f"{title} {description}", area=area, governorate=governorate) if accept_analysis else None
+    if analysis:
+        category = db.get(Category, analysis["category_id"])
+        department = db.get(Department, analysis["department_id"])
+        if category is None or department is None:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Analyzer recommendation is invalid")
+
     complaint = Complaint(
         user_id=user.id,
-        category_id=category.id,
+        category_id=analysis["category_id"] if analysis else category.id,
+        department_id=analysis["department_id"] if analysis else None,
         title=title.strip(),
         description=description.strip(),
         address=address.strip() if address else None,
@@ -338,8 +363,11 @@ async def complaint_form_submit(
         latitude=latitude_value,
         longitude=longitude_value,
         image_path=image_path,
-        priority="medium",
-        status="new",
+        priority=analysis["priority"] if analysis else "medium",
+        status="assigned" if analysis else "new",
+        routing_reason=analysis["routing_reason"] if analysis else None,
+        routing_confidence=analysis["confidence"] if analysis else None,
+        assigned_at=datetime.now(timezone.utc) if analysis else None,
     )
     db.add(complaint)
     db.flush()
@@ -362,6 +390,16 @@ async def complaint_form_submit(
             note="تم تصنيف البلاغ",
         )
     )
+    if analysis:
+        db.add(
+            ComplaintUpdate(
+                complaint_id=complaint.id,
+                user_id=user.id,
+                old_status="new",
+                new_status="assigned",
+                note=f"تم توجيه البلاغ تلقائياً إلى {analysis['department']}",
+            )
+        )
     db.commit()
     db.refresh(complaint)
     return RedirectResponse(url=f"/citizen/complaints/{complaint.id}", status_code=status.HTTP_303_SEE_OTHER)
@@ -445,6 +483,13 @@ async def admin_dashboard(
 
     recent_complaints = complaints[:5]
     departments = db.scalars(select(Department).order_by(Department.name.asc())).all()
+    routed_complaints = [complaint for complaint in complaints if complaint.department]
+    open_complaints = [complaint for complaint in complaints if complaint.status not in {"resolved", "closed"}]
+    top_department = max(routed_complaints, key=lambda item: sum(other.department_id == item.department_id for other in routed_complaints)).department if routed_complaints else None
+    categorized_complaints = [complaint for complaint in complaints if complaint.category]
+    top_category = max(categorized_complaints, key=lambda item: sum(other.category_id == item.category_id for other in categorized_complaints)).category if categorized_complaints else None
+    governorates = [complaint.governorate for complaint in open_complaints if complaint.governorate]
+    top_governorate = max(set(governorates), key=governorates.count) if governorates else None
 
     return templates.TemplateResponse(
         request,
@@ -461,6 +506,9 @@ async def admin_dashboard(
             "pending_routing_count": pending_routing_count,
             "recent_complaints": recent_complaints,
             "departments": departments,
+            "top_department": top_department,
+            "top_category": top_category,
+            "top_governorate": top_governorate,
         },
     )
 
@@ -679,7 +727,7 @@ async def admin_complaint_update(
         if complaint.status == "new":
             complaint.status = "assigned"
         if previous_department_name:
-            note = f"تم تغيير الجهة المختصة من {previous_department_name} إلى {department.name}"
+            note = f"تم تعديل الجهة المختصة من {previous_department_name} إلى {department.name}"
         else:
             note = f"تم توجيه البلاغ إلى {department.name}"
         complaint.routing_reason = routing_reason.strip() or note

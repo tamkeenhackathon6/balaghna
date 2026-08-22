@@ -63,4 +63,15 @@ Completed:
 - Added Arabic workflow status labels and citizen visibility for the current responsible entity, routing reason, last update, and status.
 - Verified routing timeline integrity, comment access control, and citizen detail rendering.
 
-Next Phase: Smart Complaint Classification & Official Entity Routing
+## Phase 7: Smart Complaint Classification & Official Entity Routing
+
+Completed:
+
+- Added a local deterministic Arabic rule-based analyzer with Syrian colloquial normalization and heuristic confidence.
+- Restricted smart routing targets to the nine seeded official participating entities and existing complaint categories.
+- Added the authenticated complaint analysis API and citizen suggestion interface.
+- Saved accepted automatic routing with category, priority, routing reason, confidence, assignment time, and timeline history while retaining admin correction authority.
+- Added live database-driven complaint insights to the admin dashboard.
+- Verified all required routing examples and end-to-end automatic routing persistence.
+
+Next Phase: UI/UX Polish, Charts & Responsive Design

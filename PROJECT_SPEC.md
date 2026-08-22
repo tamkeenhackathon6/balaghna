@@ -237,3 +237,11 @@ Suggested mappings:
 ## 13. Demo data
 
 The seed process creates demo users and realistic Arabic complaints covering all major participating entities and routing scenarios.
+
+## 14. Smart complaint analysis
+
+BALIGHNA uses a local deterministic Arabic rule-based analyzer for the MVP. It normalizes common Arabic forms and Syrian colloquial wording, scores official routing groups by matched keywords and applies documented routing precedence.
+
+The analyzer suggests an existing category, priority, one official participating entity, matched keywords, a heuristic confidence value, and a routing reason. It is not a trained neural network and does not call paid external APIs.
+
+When a citizen accepts a suggestion, the server re-runs the local analysis before saving the complaint. The suggested official department, category, priority, routing reason, confidence, assignment timestamp, and an automatic-routing timeline event are saved. Admins retain authority to correct the assigned official entity, with previous routing history preserved.

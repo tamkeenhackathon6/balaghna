@@ -51,6 +51,21 @@
             <textarea id="description" name="description" rows="5" required class="w-full rounded-xl border border-slate-300 px-3 py-2.5 focus:border-sky-500 focus:outline-none" placeholder="اكتب تفاصيل المشكلة، موقعها، وتأثيرها على المواطنين..."></textarea>
           </div>
 
+          <div class="md:col-span-2 rounded-xl border border-sky-200 bg-sky-50 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 class="font-bold text-sky-950">اقتراح بلّغنا الذكي</h2>
+                <p class="mt-1 text-sm text-sky-800">تحليل محلي يعتمد على قواعد عربية واضحة ولا يستخدم خدمات مدفوعة.</p>
+              </div>
+              <button id="analyze-complaint" type="button" class="rounded-lg bg-sky-700 px-4 py-2 font-semibold text-white hover:bg-sky-800">تحليل البلاغ</button>
+            </div>
+            <div id="analysis-result" class="mt-4 hidden rounded-lg bg-white p-4 text-sm text-slate-700"></div>
+            <label id="accept-analysis-container" class="mt-4 hidden items-center gap-2 text-sm font-semibold text-sky-900">
+              <input id="accept-analysis" name="accept_analysis" type="checkbox" value="true" class="h-4 w-4" />
+              اعتماد الاقتراح
+            </label>
+          </div>
+
           <div>
             <label for="category_id" class="mb-2 block text-sm font-medium text-slate-700">نوع المشكلة</label>
             <select id="category_id" name="category_id" required class="w-full rounded-xl border border-slate-300 px-3 py-2.5 focus:border-sky-500 focus:outline-none">
@@ -128,6 +143,40 @@
 
       document.getElementById('latitude').value = defaultLat.toFixed(6);
       document.getElementById('longitude').value = defaultLng.toFixed(6);
+
+      document.getElementById('analyze-complaint').addEventListener('click', async () => {
+        const title = document.getElementById('title').value.trim();
+        const description = document.getElementById('description').value.trim();
+        const result = document.getElementById('analysis-result');
+        const acceptContainer = document.getElementById('accept-analysis-container');
+        if (!title && !description) {
+          result.textContent = 'اكتب عنوان البلاغ أو وصفه أولاً.';
+          result.classList.remove('hidden');
+          return;
+        }
+
+        const response = await fetch('/api/complaints/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: `${title} ${description}`,
+            area: document.getElementById('area').value,
+            governorate: document.getElementById('governorate').value
+          })
+        });
+        if (!response.ok) {
+          result.textContent = 'تعذر تحليل البلاغ حالياً.';
+          result.classList.remove('hidden');
+          return;
+        }
+
+        const suggestion = await response.json();
+        result.innerHTML = `<div class="space-y-1"><div><strong>نوع المشكلة:</strong> ${suggestion.category}</div><div><strong>الأولوية:</strong> ${suggestion.priority}</div><div><strong>الجهة المختصة:</strong> ${suggestion.department}</div><div><strong>سبب التوجيه:</strong> ${suggestion.routing_reason}</div></div>`;
+        result.classList.remove('hidden');
+        acceptContainer.classList.remove('hidden');
+        acceptContainer.classList.add('flex');
+        document.getElementById('category_id').value = suggestion.category_id;
+      });
     </script>
   </body>
 </html>
