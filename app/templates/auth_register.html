@@ -1,63 +1,88 @@
 <!DOCTYPE html>
 {% set lang = current_language(request) %}<html lang="{{ lang }}" dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{{ title }}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="/static/css/ministry-theme.css" />
-  </head>
-  <body dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}">
-    <main class="min-h-screen flex items-center justify-center p-6">
-      <div class="ministry-card w-full max-w-md overflow-hidden">
-        <div class="ministry-nav px-6 py-5 text-white"><div class="flex items-center justify-between"><a href="/"><img class="ministry-logo" src="/static/images/horizntal-logo.png" alt="Ministry logo" /></a><a href="/set-language/{{ 'en' if lang == 'ar' else 'ar' }}" class="rounded border border-white/50 px-2 py-1 text-sm">{{ 'EN' if lang == 'ar' else 'العربية' }}</a></div>
-          <p class="mt-4 text-sm font-semibold">{{ 'بلّغنا | منصة البلاغات والخدمات المحلية' if lang == 'ar' else 'BALIGHNA | Public Service Complaints Platform' }}</p>
-          <h1 class="mt-2 text-2xl font-bold">{{ t('register', request) }}</h1>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ title }}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/static/css/ministry-theme.css" />
+</head>
+
+<body dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}">
+  <main class="min-h-screen flex items-center justify-center p-6">
+    <div class="ministry-card w-full max-w-md overflow-hidden">
+      <div class="ministry-nav px-6 py-5 text-white">
+        <div class="flex items-center justify-between"><a href="/"><img class="ministry-logo"
+              src="/static/images/horizntal-logo.png" alt="Ministry logo" /></a>
+              <!-- <a
+            href="/set-language/{{ 'en' if lang == 'ar' else 'ar' }}"
+            class="rounded border border-white/50 px-2 py-1 text-sm">{{ 'EN' if lang == 'ar' else 'العربية' }}</a> -->
+          </div>
+        <p class="mt-4 text-sm font-semibold">{{ 'بلّغنا | منصة البلاغات والخدمات المحلية' if lang == 'ar' else
+          'BALIGHNA | Public Service Complaints Platform' }}</p>
+        <h1 class="mt-2 text-2xl font-bold">{{ t('register', request) }}</h1>
+      </div>
+
+      <form method="post" action="/register" class="p-6 space-y-5">
+        <button type="button"
+          onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href='/'; }"
+          class="rounded-lg border px-3 py-2 text-sm" style="color:var(--syrian-forest)">{{ 'رجوع' if lang == 'ar' else
+          'Back' }}</button>
+        {% if error %}
+        <div class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{{ error }}</div>
+        {% endif %}
+
+        <div>
+          <label for="name" class="mb-2 block text-sm font-medium text-slate-700">الاسم الكامل</label>
+          <input id="name" name="name" type="text" required
+            class="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:border-sky-500 focus:outline-none"
+            placeholder="اسمك الكامل" />
         </div>
 
-        <form method="post" action="/register" class="p-6 space-y-5">
-          <button type="button" onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href='/'; }" class="rounded-lg border px-3 py-2 text-sm" style="color:var(--syrian-forest)">{{ 'رجوع' if lang == 'ar' else 'Back' }}</button>
-          {% if error %}
-          <div class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{{ error }}</div>
-          {% endif %}
+        <div>
+          <label for="national_id" class="mb-2 block text-sm font-medium text-slate-700">الرقم الوطني</label>
+          <input id="national_id" name="national_id" type="text" required
+            class="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:border-sky-500 focus:outline-none" />
+        </div>
 
-          <div>
-            <label for="name" class="mb-2 block text-sm font-medium text-slate-700">الاسم الكامل</label>
-            <input id="name" name="name" type="text" required class="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:border-sky-500 focus:outline-none" placeholder="اسمك الكامل" />
-          </div>
+        <div>
+          <label for="phone" class="mb-2 block text-sm font-medium text-slate-700">رقم الهاتف</label>
+          <input id="phone" name="phone" type="tel" required
+            class="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:border-sky-500 focus:outline-none" />
+        </div>
 
-          <div>
-            <label for="national_id" class="mb-2 block text-sm font-medium text-slate-700">الرقم الوطني</label>
-            <input id="national_id" name="national_id" type="text" required class="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:border-sky-500 focus:outline-none" />
-          </div>
+        <div>
+          <label for="email" class="mb-2 block text-sm font-medium text-slate-700">البريد الإلكتروني</label>
+          <input id="email" name="email" type="email" required
+            class="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:border-sky-500 focus:outline-none"
+            placeholder="name@example.com" />
+        </div>
 
-          <div>
-            <label for="phone" class="mb-2 block text-sm font-medium text-slate-700">رقم الهاتف</label>
-            <input id="phone" name="phone" type="tel" required class="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:border-sky-500 focus:outline-none" />
-          </div>
+        <div>
+          <label for="password" class="mb-2 block text-sm font-medium text-slate-700">كلمة المرور</label>
+          <input id="password" name="password" type="password" required
+            class="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:border-sky-500 focus:outline-none"
+            placeholder="••••••••" />
+        </div>
 
-          <div>
-            <label for="email" class="mb-2 block text-sm font-medium text-slate-700">البريد الإلكتروني</label>
-            <input id="email" name="email" type="email" required class="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:border-sky-500 focus:outline-none" placeholder="name@example.com" />
-          </div>
+        <div>
+          <label for="password_confirm" class="mb-2 block text-sm font-medium text-slate-700">تأكيد كلمة المرور</label>
+          <input id="password_confirm" name="password_confirm" type="password" required
+            class="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:border-sky-500 focus:outline-none"
+            placeholder="••••••••" />
+        </div>
 
-          <div>
-            <label for="password" class="mb-2 block text-sm font-medium text-slate-700">كلمة المرور</label>
-            <input id="password" name="password" type="password" required class="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:border-sky-500 focus:outline-none" placeholder="••••••••" />
-          </div>
+        <button type="submit" class="ministry-btn w-full rounded-lg px-4 py-3 font-semibold">{{ t('register', request)
+          }}</button>
 
-          <div>
-            <label for="password_confirm" class="mb-2 block text-sm font-medium text-slate-700">تأكيد كلمة المرور</label>
-            <input id="password_confirm" name="password_confirm" type="password" required class="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:border-sky-500 focus:outline-none" placeholder="••••••••" />
-          </div>
+        <div class="text-center text-sm text-slate-600">
+          {{ 'لديك حساب بالفعل؟' if lang == 'ar' else 'Already have an account?' }} <a href="/login"
+            class="font-semibold" style="color:var(--syrian-emerald)">{{ t('login', request) }}</a>
+        </div>
+      </form>
+    </div>
+  </main>
+</body>
 
-          <button type="submit" class="ministry-btn w-full rounded-lg px-4 py-3 font-semibold">{{ t('register', request) }}</button>
-
-          <div class="text-center text-sm text-slate-600">
-            {{ 'لديك حساب بالفعل؟' if lang == 'ar' else 'Already have an account?' }} <a href="/login" class="font-semibold" style="color:var(--syrian-emerald)">{{ t('login', request) }}</a>
-          </div>
-        </form>
-      </div>
-    </main>
-  </body>
 </html>

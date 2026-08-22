@@ -13,7 +13,7 @@
         <a href="/"><img class="ministry-logo" src="/static/images/horizntal-logo.png" alt="{{ 'شعار وزارة الإدارة المحلية والبيئة' if lang == 'ar' else 'Ministry of Local Administration and Environment Logo' }}" /></a>
         <div class="flex items-center gap-3">
           <a href="/admin/complaints" class="rounded-lg border border-white/60 px-4 py-2 text-sm font-medium hover:bg-white/10">قائمة البلاغات</a>
-          <a href="/set-language/{{ 'en' if lang == 'ar' else 'ar' }}" class="rounded-lg border border-white/60 px-3 py-2">{{ 'EN' if lang == 'ar' else 'العربية' }}</a>
+          <!-- <a href="/set-language/{{ 'en' if lang == 'ar' else 'ar' }}" class="rounded-lg border border-white/60 px-3 py-2">{{ 'EN' if lang == 'ar' else 'العربية' }}</a> -->
           <form method="post" action="/logout">
             <button type="submit" class="rounded-lg border border-white/60 px-4 py-2 text-sm font-medium hover:bg-white/10">تسجيل الخروج</button>
           </form>

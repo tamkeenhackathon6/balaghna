@@ -20,7 +20,7 @@
       <a href="/citizen/complaints" class="rounded-lg border border-white/30 px-3 py-2 hover:bg-white/10">{{ 'بلاغاتي' if lang == 'ar' else 'My Complaints' }}</a>
       <a href="/citizen/complaints/new" class="rounded-lg border border-white/30 px-3 py-2 hover:bg-white/10">{{ 'إنشاء بلاغ' if lang == 'ar' else 'Create Complaint' }}</a>
       {% endif %}
-      <a href="/set-language/{{ 'en' if lang == 'ar' else 'ar' }}" class="rounded-lg border border-white/50 px-3 py-2">{{ 'EN' if lang == 'ar' else 'العربية' }}</a>
+      <!-- <a href="/set-language/{{ 'en' if lang == 'ar' else 'ar' }}" class="rounded-lg border border-white/50 px-3 py-2">{{ 'EN' if lang == 'ar' else 'العربية' }}</a> -->
       <span class="hidden text-white/80 lg:inline">{{ user.name }} · {{ 'إدارة' if user.role == 'admin' and lang == 'ar' else ('Admin' if user.role == 'admin' else ('مواطن' if lang == 'ar' else 'Citizen')) }}</span>
       <form method="post" action="/logout"><button type="submit" class="rounded-lg bg-white/10 px-3 py-2 hover:bg-white/20">{{ t('logout', request) }}</button></form>
     </div>

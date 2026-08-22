@@ -10,7 +10,9 @@
   <body dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}">
     <main class="min-h-screen flex items-center justify-center p-6">
       <div class="ministry-card w-full max-w-md overflow-hidden">
-        <div class="ministry-nav px-6 py-5 text-white"><div class="flex items-center justify-between"><a href="/"><img class="ministry-logo" src="/static/images/horizntal-logo.png" alt="Ministry logo" /></a><a href="/set-language/{{ 'en' if lang == 'ar' else 'ar' }}" class="rounded border border-white/50 px-2 py-1 text-sm">{{ 'EN' if lang == 'ar' else 'العربية' }}</a></div>
+        <div class="ministry-nav px-6 py-5 text-white"><div class="flex items-center justify-between"><a href="/"><img class="ministry-logo" src="/static/images/horizntal-logo.png" alt="Ministry logo" /></a>
+          <!-- <a href="/set-language/{{ 'en' if lang == 'ar' else 'ar' }}" class="rounded border border-white/50 px-2 py-1 text-sm">{{ 'EN' if lang == 'ar' else 'العربية' }}</a> -->
+        </div>
           <p class="mt-4 text-sm font-semibold">{{ 'بلّغنا | منصة البلاغات والخدمات المحلية' if lang == 'ar' else 'BALIGHNA | Public Service Complaints Platform' }}</p>
           <h1 class="mt-2 text-2xl font-bold">{{ t('login', request) }}</h1>
         </div>
