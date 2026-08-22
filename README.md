@@ -6,19 +6,27 @@ BALIGHNA is a smart public-service complaint management platform for the Ministr
 
 Citizens can report public-service issues, and the platform routes each complaint to the most appropriate official administrative entity for follow-up and resolution.
 
+## كيف يتم توجيه البلاغ؟
+
+يتبع البلاغ مساراً واضحاً من لحظة الإرسال حتى الإغلاق:
+
+المواطن يرسل البلاغ → يصنّف بلّغنا النص العربي محلياً → تُقترح الأولوية والجهة المسؤولة → يراجع المشرف التوجيه عند الحاجة → تتم المعالجة → يتابع المواطن النتيجة حتى الحل أو الإغلاق.
+
+محرك التحليل في النسخة التجريبية محلي وحتمي ويعتمد على قواعد عربية وكلمات مفتاحية سورية شائعة. لا يستخدم خدمات مدفوعة أو نموذجاً عصبياً مدرباً. عند اعتماد المواطن للاقتراح، يحفظ النظام التصنيف والأولوية والجهة وسبب التوجيه وثقة تحليل استدلالية، ويستطيع المشرف تعديل التوجيه مع الاحتفاظ بسجل كامل للتغييرات.
+
 ## Official participating entities
 
 The system is built around the official departments that must receive complaints:
 
-1. مديرية الخدمات المحلية
-2. مديريات المجالس المحلية والإدارة المحلية
-3. مديرية التخطيط والتنمية المحلية
-4. مديرية التنظيم والتخطيط العمراني
-5. مديرية الشؤون الفنية
-6. مديرية الشؤون المالية
-7. مديرية الرقابة والتفتيش
-8. المحافظات
-9. مجالس المدن والبلديات والوحدات الإدارية
+1. **مديرية الخدمات المحلية**: النفايات، النظافة، الحدائق، الأرصفة، الإنارة، الحفر والخدمات اليومية.
+2. **مديريات المجالس المحلية والإدارة المحلية**: أداء الوحدات الإدارية وشكاوى المواطنين المتعلقة بالإدارة المحلية.
+3. **مديرية التخطيط والتنمية المحلية**: احتياجات المناطق، ترتيب أولويات المشاريع والتنمية المحلية.
+4. **مديرية التنظيم والتخطيط العمراني**: التنظيم، البناء، المخططات واستعمالات الأراضي.
+5. **مديرية الشؤون الفنية**: البنية التحتية، الصيانة الفنية، المشاريع ومتابعة التنفيذ.
+6. **مديرية الشؤون المالية**: الموازنات، الرسوم، الإيرادات، النفقات والموارد المحلية.
+7. **مديرية الرقابة والتفتيش**: المخالفات، التقصير الإداري ومتابعة أداء الجهات.
+8. **المحافظات**: المشاكل العابرة للجهات أو الواقعة على مستوى المحافظة.
+9. **مجالس المدن والبلديات والوحدات الإدارية**: التنفيذ المحلي المباشر والخدمات ضمن الوحدة الإدارية.
 
 This routing model is a core principle of BALIGHNA: complaints are not left unassigned; they are directed to the responsible entity based on category, issue type, and local administrative context.
 
@@ -36,9 +44,10 @@ This routing model is a core principle of BALIGHNA: complaints are not left unas
 ## Run locally
 
 ```bash
-pip install -r requirements.txt
-python -m app.seed
-uvicorn app.main:app --reload
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+.venv/bin/python -m app.seed
+.venv/bin/uvicorn app.main:app --reload
 ```
 
 Then open:
@@ -46,6 +55,11 @@ Then open:
 - http://127.0.0.1:8000/health
 - http://127.0.0.1:8000/
 
+Demo accounts:
+
+- Citizen: `citizen@example.com` / `password`
+- Admin: `admin@example.com` / `password`
+
 ## Project phase
 
-This is Phase 1, focused on foundational architecture, database, official entities, routing rules, and seeded demo data.
+This is Phase 9, with a complete citizen workflow, official admin routing, timeline/comments, interactive map, live dashboard charts, deterministic Arabic analysis, and hackathon demo documentation.
