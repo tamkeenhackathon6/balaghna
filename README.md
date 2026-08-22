@@ -10,29 +10,46 @@ Citizens can report public-service issues, and the platform routes each complain
 
 يتبع البلاغ مساراً واضحاً من لحظة الإرسال حتى الإغلاق:
 
-المواطن يرسل البلاغ → يصنّف بلّغنا النص العربي محلياً → تُقترح الأولوية والجهة المسؤولة → يراجع المشرف التوجيه عند الحاجة → تتم المعالجة → يتابع المواطن النتيجة حتى الحل أو الإغلاق.
+**المواطن يرسل البلاغ ← يُصنّف بلّغنا النص العربي محلياً ← تُقترح الأولوية والجهة المسؤولة ← يراجع المشرف التوجيه عند الحاجة ← تتم المعالجة ← يتابع المواطن النتيجة حتى الحل أو الإغلاق.**
 
-محرك التحليل في النسخة التجريبية محلي وحتمي ويعتمد على قواعد عربية وكلمات مفتاحية سورية شائعة. لا يستخدم خدمات مدفوعة أو نموذجاً عصبياً مدرباً. عند اعتماد المواطن للاقتراح، يحفظ النظام التصنيف والأولوية والجهة وسبب التوجيه وثقة تحليل استدلالية، ويستطيع المشرف تعديل التوجيه مع الاحتفاظ بسجل كامل للتغييرات.
+محرك التحليل في النسخة التجريبية محلي وحتمي ويعتمد على قواعد عربية وكلمات مفتاحية سورية شائعة. لا يستخدم خدمات مدفوعة أو نموذجاً عصبياً مدرباً.
+
+ولتحسين وصياغة الـ prompts المستخدمة أثناء تطوير المشروع، تم الاستعانة بأداة **Qwen المجانية** عبر:
+[Qwen Chat](https://chat.qwen.ai/s/6f35c970-61e0-4915-ae69-b52ab395f064?fev=0.2.87&utm_source=chatgpt.com)
+
+استخدام Qwen كان للمساعدة في **تطوير وتحسين الـ prompts**، وليس كمحرك التحليل أو التصنيف التشغيلي داخل BALIGHNA.
+
+عند اعتماد المواطن للاقتراح، يحفظ النظام التصنيف والأولوية والجهة وسبب التوجيه وثقة تحليل استدلالية، ويستطيع المشرف تعديل التوجيه مع الاحتفاظ بسجل كامل للتغييرات.
 
 ## Official participating entities
 
 The system is built around the official departments that must receive complaints:
 
 1. **مديرية الخدمات المحلية**: النفايات، النظافة، الحدائق، الأرصفة، الإنارة، الحفر والخدمات اليومية.
+
 2. **مديريات المجالس المحلية والإدارة المحلية**: أداء الوحدات الإدارية وشكاوى المواطنين المتعلقة بالإدارة المحلية.
+
 3. **مديرية التخطيط والتنمية المحلية**: احتياجات المناطق، ترتيب أولويات المشاريع والتنمية المحلية.
+
 4. **مديرية التنظيم والتخطيط العمراني**: التنظيم، البناء، المخططات واستعمالات الأراضي.
+
 5. **مديرية الشؤون الفنية**: البنية التحتية، الصيانة الفنية، المشاريع ومتابعة التنفيذ.
+
 6. **مديرية الشؤون المالية**: الموازنات، الرسوم، الإيرادات، النفقات والموارد المحلية.
+
 7. **مديرية الرقابة والتفتيش**: المخالفات، التقصير الإداري ومتابعة أداء الجهات.
+
 8. **المحافظات**: المشاكل العابرة للجهات أو الواقعة على مستوى المحافظة.
+
 9. **مجالس المدن والبلديات والوحدات الإدارية**: التنفيذ المحلي المباشر والخدمات ضمن الوحدة الإدارية.
 
 This routing model is a core principle of BALIGHNA: complaints are not left unassigned; they are directed to the responsible entity based on category, issue type, and local administrative context.
 
 ## Geographic scope
 
-The MVP uses Syrian governorates only: دمشق، ريف دمشق، حلب، حمص، حماة، اللاذقية، طرطوس، إدلب، درعا، السويداء، القنيطرة، دير الزور، الرقة، والحسكة. Demo complaints are concentrated around Damascus and Rural Damascus, with additional examples across Syrian governorates. Map coordinates are approximate demo locations, not survey-grade measurements.
+The MVP uses Syrian governorates only: دمشق، ريف دمشق، حلب، حمص، حماة، اللاذقية، طرطوس، إدلب، درعا، السويداء، القنيطرة، دير الزور، الرقة، والحسكة.
+
+Demo complaints are concentrated around Damascus and Rural Damascus, with additional examples across Syrian governorates. Map coordinates are approximate demo locations, not survey-grade measurements.
 
 ## Ministry identity and language
 
@@ -46,14 +63,14 @@ Authenticated citizen and admin pages share a ministry header with a clickable l
 
 ## Tech stack
 
-- Python 3.11+
-- FastAPI
-- SQLAlchemy 2.x
-- SQLite
-- Pydantic
-- Jinja2
-- Tailwind CSS
-- Vanilla JavaScript
+* Python 3.11+
+* FastAPI
+* SQLAlchemy 2.x
+* SQLite
+* Pydantic
+* Jinja2
+* Tailwind CSS
+* Vanilla JavaScript
 
 ## Run locally
 
@@ -68,39 +85,14 @@ To reset the local development demo database after changing seed data, remove on
 
 Then open:
 
-- http://127.0.0.1:8000/health
-- http://127.0.0.1:8000/
+* http://127.0.0.1:8000/health
+* http://127.0.0.1:8000/
 
 Demo accounts:
 
-- Citizen: `citizen@example.com` / `password`
-- Ministry admin: `admin@molae.gov.sy` / `password`
-- Directorate demo: `local-services@molae.gov.sy` / `password`
-- Field employee demo: `emp001.local-services@molae.gov.sy` / `password`
-
-All Ministry-domain account aliases are hackathon demo identities, not operational ministry email addresses.
-
-## Operational workflow and privacy
-
-BALIGHNA uses four roles: `citizen`, `ministry_admin`, `directorate_admin`, and `field_employee`. Smart routing selects the responsible official department; the directorate then assigns a field employee. The employee starts work, uploads completion evidence, and explicitly confirms completion, which moves the complaint to `resolved`.
-
-Citizen registration requires a National ID and phone number. National IDs are encrypted for Ministry-only viewing and protected with an HMAC hash for duplicate detection. Directorate and field users never receive National ID values through their screens or scoped workflow routes.
-
-## Local AI setup
-
-BALIGHNA can use Qwen3 4B through a local Ollama server for Arabic and Syrian-colloquial complaint suggestions. Install Ollama, then run:
-
-```bash
-ollama pull qwen3:4b
-ollama serve
-```
-
-Configure `OLLAMA_BASE_URL`, `OLLAMA_MODEL`, `OLLAMA_TIMEOUT`, and `AI_ANALYZER_ENABLED` in `.env`. The application sends only complaint text plus optional area/governorate to local Ollama. It never sends National IDs, passwords, session tokens, or citizen profile data.
-
-If Ollama is unavailable, times out, returns malformed JSON, or suggests an invalid category, priority, or official entity, BALIGHNA automatically uses its deterministic local rule-based analyzer.
-
-Operational routes: Ministry `/admin`, directorate `/directorate`, employee `/employee`, and citizen `/citizen`.
+* Citizen: `citizen@example.com` / `password`
+* Admin: `admin@example.com` / `password`
 
 ## Project phase
 
-This is the Phase 10 release candidate, with a complete citizen workflow, official admin routing, timeline/comments, interactive map, live dashboard charts, deterministic Arabic analysis, demo documentation, and final QA coverage.
+This is the **Phase 10 release candidate**, with a complete citizen workflow, official admin routing, timeline/comments, interactive map, live dashboard charts, deterministic Arabic analysis, demo documentation, and final QA coverage.
