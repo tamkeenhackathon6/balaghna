@@ -74,4 +74,15 @@ Completed:
 - Added live database-driven complaint insights to the admin dashboard.
 - Verified all required routing examples and end-to-end automatic routing persistence.
 
-Next Phase: UI/UX Polish, Charts & Responsive Design
+## Phase 8: UI/UX Polish, Charts & Routing Visualization
+
+Completed:
+
+- Polished the RTL complaint surfaces to consistently expose category, priority, status, and the responsible official entity.
+- Added the pending-routing metric as a first-class admin dashboard card.
+- Added real database-driven charts for complaints by category, status, and responsible official entity.
+- Added an official entity distribution table that lists only entities with routed complaints.
+- Highlighted citizen and admin routing details including routing reason, automatic-routing indicator, and analysis confidence where available.
+- Verified dashboard charts and both citizen and admin workflow pages render successfully.
+
+Next Phase: Demo Data, Presentation Flow & Hackathon Documentation

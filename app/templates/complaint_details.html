@@ -76,7 +76,7 @@
           <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 class="mb-3 text-lg font-bold">معلومات البلاغ</h2>
             <dl class="space-y-3 text-sm text-slate-700">
-              <div><dt class="font-semibold text-slate-900">الجهة المسؤولة حالياً</dt><dd>{% if complaint.department %}{{ complaint.department.name }}{% else %}بانتظار تحديد الجهة المختصة{% endif %}</dd></div>
+              <div><dt class="font-semibold text-slate-900">الجهة المسؤولة عن المتابعة</dt><dd>{% if complaint.department %}{{ complaint.department.name }}{% if complaint.routing_confidence %}<span class="mt-1 block text-xs text-emerald-700">تم التوجيه تلقائياً</span>{% endif %}{% else %}بانتظار التوجيه{% endif %}</dd></div>
               <div><dt class="font-semibold text-slate-900">سبب التوجيه</dt><dd>{{ complaint.routing_reason or 'بانتظار تحديد سبب التوجيه' }}</dd></div>
               <div><dt class="font-semibold text-slate-900">الحالة</dt><dd>{{ status_labels.get(complaint.status, complaint.status) }}</dd></div>
               <div><dt class="font-semibold text-slate-900">آخر تحديث</dt><dd>{% if complaint.updates %}{{ complaint.updates[0].created_at.strftime('%Y-%m-%d %H:%M') }}{% else %}{{ complaint.created_at.strftime('%Y-%m-%d %H:%M') }}{% endif %}</dd></div>

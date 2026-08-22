@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from collections import Counter
 from pathlib import Path
 from uuid import uuid4
 
@@ -490,6 +491,9 @@ async def admin_dashboard(
     top_category = max(categorized_complaints, key=lambda item: sum(other.category_id == item.category_id for other in categorized_complaints)).category if categorized_complaints else None
     governorates = [complaint.governorate for complaint in open_complaints if complaint.governorate]
     top_governorate = max(set(governorates), key=governorates.count) if governorates else None
+    category_distribution = Counter(complaint.category.name for complaint in categorized_complaints)
+    status_distribution = Counter(STATUS_LABELS.get(complaint.status, complaint.status) for complaint in complaints)
+    department_distribution = Counter(complaint.department.name for complaint in routed_complaints)
 
     return templates.TemplateResponse(
         request,
@@ -509,6 +513,9 @@ async def admin_dashboard(
             "top_department": top_department,
             "top_category": top_category,
             "top_governorate": top_governorate,
+            "category_distribution": dict(category_distribution),
+            "status_distribution": dict(status_distribution),
+            "department_distribution": dict(department_distribution),
         },
     )
 

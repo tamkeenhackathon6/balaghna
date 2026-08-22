@@ -79,7 +79,7 @@
 
         <div class="space-y-6">
           <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 class="mb-4 text-xl font-bold">الجهة المسؤولة عن البلاغ</h2>
+            <h2 class="mb-4 text-xl font-bold">توجيه البلاغ</h2>
             <div class="rounded-xl bg-sky-50 p-4 text-sm text-sky-900">
               {% if complaint.department %}
                 {{ complaint.department.name }}
@@ -88,6 +88,9 @@
               {% endif %}
             </div>
             <div class="mt-4 text-sm text-slate-600">
+              <div><span class="font-semibold text-slate-800">الجهة الحالية:</span> {{ complaint.department.name if complaint.department else 'بانتظار التوجيه' }}</div>
+              <div class="mt-2"><span class="font-semibold text-slate-800">سبب التوجيه:</span> {{ complaint.routing_reason or 'غير محدد' }}</div>
+              {% if complaint.routing_confidence %}<div class="mt-2"><span class="font-semibold text-slate-800">ثقة التحليل:</span> {{ (complaint.routing_confidence * 100)|round|int }}%</div>{% endif %}
               <div><span class="font-semibold text-slate-800">المواطن:</span> {{ complaint.user.name if complaint.user else 'غير معروف' }}</div>
               <div class="mt-2"><span class="font-semibold text-slate-800">المحافظة:</span> {{ complaint.governorate or 'غير محدد' }}</div>
               <div class="mt-2"><span class="font-semibold text-slate-800">المنطقة:</span> {{ complaint.area or 'غير محدد' }}</div>
@@ -99,7 +102,7 @@
             <h2 class="mb-4 text-xl font-bold">توجيه رسمي</h2>
             <form method="post" action="/admin/complaints/{{ complaint.id }}" class="space-y-4">
               <div>
-                <label class="mb-2 block text-sm font-medium text-slate-700">الجهة المختصة</label>
+                <label class="mb-2 block text-sm font-medium text-slate-700">تغيير الجهة</label>
                 <select name="department_id" class="w-full rounded-xl border border-slate-300 px-3 py-2.5">
                   <option value="">-- اختر جهة --</option>
                   {% for department in departments %}
