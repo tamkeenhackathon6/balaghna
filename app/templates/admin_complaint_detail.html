@@ -1,20 +1,19 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+{% set lang = current_language(request) %}<html lang="{{ lang }}" dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{{ title }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/css/ministry-theme.css" />
   </head>
-  <body class="bg-slate-100 text-slate-800" dir="rtl">
-    <nav class="bg-sky-800 text-white">
+  <body class="text-slate-800" dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}">
+    <nav class="ministry-nav text-white">
       <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-        <div>
-          <div class="text-xs font-semibold">BALIGHNA | بلّغنا</div>
-          <div class="text-lg font-bold">{{ slogan }}</div>
-        </div>
+        <a href="/"><img class="ministry-logo" src="/static/images/horizntal-logo.png" alt="{{ 'شعار وزارة الإدارة المحلية والبيئة' if lang == 'ar' else 'Ministry of Local Administration and Environment Logo' }}" /></a>
         <div class="flex items-center gap-3">
           <a href="/admin/complaints" class="rounded-lg border border-white/60 px-4 py-2 text-sm font-medium hover:bg-white/10">قائمة البلاغات</a>
+          <a href="/set-language/{{ 'en' if lang == 'ar' else 'ar' }}" class="rounded-lg border border-white/60 px-3 py-2">{{ 'EN' if lang == 'ar' else 'العربية' }}</a>
           <form method="post" action="/logout">
             <button type="submit" class="rounded-lg border border-white/60 px-4 py-2 text-sm font-medium hover:bg-white/10">تسجيل الخروج</button>
           </form>
@@ -35,8 +34,8 @@
         <div class="space-y-6">
           <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div class="mb-4 flex flex-wrap gap-2">
-              <span class="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800">{{ status_labels.get(complaint.status, complaint.status) }}</span>
-              <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">{{ complaint.priority }}</span>
+              <span class="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800">{{ status_label(complaint.status, request) }}</span>
+              <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">{{ priority_label(complaint.priority, request) }}</span>
               {% if complaint.category %}<span class="rounded-full bg-slate-200 px-3 py-1 text-xs font-semibold text-slate-700">{{ complaint.category.name }}</span>{% endif %}
             </div>
             <p class="whitespace-pre-line text-slate-700">{{ complaint.description }}</p>
@@ -79,7 +78,7 @@
 
         <div class="space-y-6">
           <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 class="mb-4 text-xl font-bold">توجيه البلاغ</h2>
+            <h2 class="mb-4 text-xl font-bold">{{ t('routing', request) }}</h2>
             <div class="rounded-xl bg-sky-50 p-4 text-sm text-sky-900">
               {% if complaint.department %}
                 {{ complaint.department.name }}
@@ -99,10 +98,10 @@
           </div>
 
           <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 class="mb-4 text-xl font-bold">توجيه رسمي</h2>
+            <h2 class="mb-4 text-xl font-bold">{{ t('routing', request) }}</h2>
             <form method="post" action="/admin/complaints/{{ complaint.id }}" class="space-y-4">
               <div>
-                <label class="mb-2 block text-sm font-medium text-slate-700">تغيير الجهة</label>
+                <label class="mb-2 block text-sm font-medium text-slate-700">{{ t('change_entity', request) }}</label>
                 <select name="department_id" class="w-full rounded-xl border border-slate-300 px-3 py-2.5">
                   <option value="">-- اختر جهة --</option>
                   {% for department in departments %}
@@ -112,33 +111,26 @@
               </div>
 
               <div>
-                <label class="mb-2 block text-sm font-medium text-slate-700">الأولوية</label>
+                <label class="mb-2 block text-sm font-medium text-slate-700">{{ t('priority', request) }}</label>
                 <select name="priority" class="w-full rounded-xl border border-slate-300 px-3 py-2.5">
-                  <option value="low" {% if complaint.priority == 'low' %}selected{% endif %}>low</option>
-                  <option value="medium" {% if complaint.priority == 'medium' %}selected{% endif %}>medium</option>
-                  <option value="high" {% if complaint.priority == 'high' %}selected{% endif %}>high</option>
-                  <option value="urgent" {% if complaint.priority == 'urgent' %}selected{% endif %}>urgent</option>
+                  {% for value in ['low','medium','high','urgent'] %}<option value="{{ value }}" {% if complaint.priority == value %}selected{% endif %}>{{ priority_label(value, request) }}</option>{% endfor %}
                 </select>
               </div>
 
               <div>
-                <label class="mb-2 block text-sm font-medium text-slate-700">الحالة</label>
+                <label class="mb-2 block text-sm font-medium text-slate-700">{{ t('status', request) }}</label>
                 <select name="status_value" class="w-full rounded-xl border border-slate-300 px-3 py-2.5">
-                  <option value="new" {% if complaint.status == 'new' %}selected{% endif %}>new</option>
-                  <option value="assigned" {% if complaint.status == 'assigned' %}selected{% endif %}>assigned</option>
-                  <option value="in_progress" {% if complaint.status == 'in_progress' %}selected{% endif %}>in_progress</option>
-                  <option value="resolved" {% if complaint.status == 'resolved' %}selected{% endif %}>resolved</option>
-                  <option value="closed" {% if complaint.status == 'closed' %}selected{% endif %}>closed</option>
+                  {% for value in ['new','assigned','in_progress','resolved','closed'] %}<option value="{{ value }}" {% if complaint.status == value %}selected{% endif %}>{{ status_label(value, request) }}</option>{% endfor %}
                 </select>
               </div>
 
               <div>
-                <label class="mb-2 block text-sm font-medium text-slate-700">سبب التوجيه</label>
+                <label class="mb-2 block text-sm font-medium text-slate-700">{{ t('routing_reason', request) }}</label>
                 <textarea name="routing_reason" rows="4" class="w-full rounded-xl border border-slate-300 px-3 py-2.5" placeholder="مثال: تم توجيه البلاغ إلى مديرية الخدمات المحلية">{{ complaint.routing_reason or '' }}</textarea>
               </div>
 
               <div>
-                <label class="mb-2 block text-sm font-medium text-slate-700">ملاحظة إدارية</label>
+                <label class="mb-2 block text-sm font-medium text-slate-700">{{ t('admin_note', request) }}</label>
                 <textarea name="admin_note" rows="3" class="w-full rounded-xl border border-slate-300 px-3 py-2.5" placeholder="تسجل هذه الملاحظة في الخط الزمني"></textarea>
               </div>
 

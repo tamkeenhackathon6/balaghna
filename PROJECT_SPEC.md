@@ -246,3 +246,13 @@ BALIGHNA uses a local deterministic Arabic rule-based analyzer for the MVP. It n
 The analyzer suggests an existing category, priority, one official participating entity, matched keywords, a heuristic confidence value, and a routing reason. It is not a trained neural network and does not call paid external APIs.
 
 When a citizen accepts a suggestion, the server re-runs the local analysis before saving the complaint. The suggested official department, category, priority, routing reason, confidence, assignment timestamp, and an automatic-routing timeline event are saved. Admins retain authority to correct the assigned official entity, with previous routing history preserved.
+
+## 15. Ministry branding and localization
+
+BALIGHNA is a ministry-first digital service for the Ministry of Local Administration and Environment in the Syrian Arab Republic. The ministry logo assets in `app/static/images/` are the official visual identity. The shared Syrian palette is centralized in `app/static/css/ministry-theme.css`.
+
+The application supports Arabic as the default RTL interface and English as LTR. Language selection is session-persistent. Database status and priority values remain stable machine-readable enums; shared localization helpers translate them for display.
+
+All pages use the shared ministry visual identity: forest navigation, emerald actions, ivory application background, gold accents, and the supplied ministry logo assets. Localized values are presentation-only; API, filter, and database values remain `new`, `assigned`, `in_progress`, `resolved`, `closed`, `low`, `medium`, `high`, and `urgent`.
+
+The authenticated application uses a shared role-aware ministry header for citizen and admin workflows. Every ministry logo is an accessible link to `/`; returning to the landing page preserves the authenticated session. Authentication pages provide a history-aware back control with a landing-page fallback.

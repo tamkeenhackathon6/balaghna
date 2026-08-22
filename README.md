@@ -34,6 +34,16 @@ This routing model is a core principle of BALIGHNA: complaints are not left unas
 
 The MVP uses Syrian governorates only: دمشق، ريف دمشق، حلب، حمص، حماة، اللاذقية، طرطوس، إدلب، درعا، السويداء، القنيطرة، دير الزور، الرقة، والحسكة. Demo complaints are concentrated around Damascus and Rural Damascus, with additional examples across Syrian governorates. Map coordinates are approximate demo locations, not survey-grade measurements.
 
+## Ministry identity and language
+
+BALIGHNA is presented as a digital service of the Ministry of Local Administration and Environment, Syrian Arab Republic. The supplied ministry horizontal and vertical logo assets are used as the official identity; BALIGHNA remains the service name rather than a separate logo.
+
+Arabic is the default language. Users can switch between Arabic (RTL) and English (LTR), with the selected language stored in the session. Statuses and priorities remain machine-readable database values and are translated centrally at display time.
+
+The global design system is defined in `app/static/css/ministry-theme.css` and applied across public, authentication, citizen, and admin surfaces. The language selector remains available without logout and preserves the current page when safe.
+
+Authenticated citizen and admin pages share a ministry header with a clickable logo that always returns to the public landing page. Logged-in visitors remain authenticated when viewing the landing page and are offered the dashboard that matches their role.
+
 ## Tech stack
 
 - Python 3.11+

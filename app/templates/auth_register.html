@@ -1,20 +1,22 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+{% set lang = current_language(request) %}<html lang="{{ lang }}" dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{{ title }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/css/ministry-theme.css" />
   </head>
-  <body class="bg-slate-100 text-slate-800" dir="rtl">
+  <body dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}">
     <main class="min-h-screen flex items-center justify-center p-6">
-      <div class="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
-        <div class="bg-sky-700 px-6 py-5 text-white">
-          <p class="text-sm font-semibold">BALIGHNA | بلّغنا</p>
-          <h1 class="mt-2 text-2xl font-bold">بلّغنا، والباقي علينا</h1>
+      <div class="ministry-card w-full max-w-md overflow-hidden">
+        <div class="ministry-nav px-6 py-5 text-white"><div class="flex items-center justify-between"><a href="/"><img class="ministry-logo" src="/static/images/horizntal-logo.png" alt="Ministry logo" /></a><a href="/set-language/{{ 'en' if lang == 'ar' else 'ar' }}" class="rounded border border-white/50 px-2 py-1 text-sm">{{ 'EN' if lang == 'ar' else 'العربية' }}</a></div>
+          <p class="mt-4 text-sm font-semibold">{{ 'بلّغنا | منصة البلاغات والخدمات المحلية' if lang == 'ar' else 'BALIGHNA | Public Service Complaints Platform' }}</p>
+          <h1 class="mt-2 text-2xl font-bold">{{ t('register', request) }}</h1>
         </div>
 
         <form method="post" action="/register" class="p-6 space-y-5">
+          <button type="button" onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href='/'; }" class="rounded-lg border px-3 py-2 text-sm" style="color:var(--syrian-forest)">{{ 'رجوع' if lang == 'ar' else 'Back' }}</button>
           {% if error %}
           <div class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{{ error }}</div>
           {% endif %}
@@ -39,11 +41,10 @@
             <input id="password_confirm" name="password_confirm" type="password" required class="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:border-sky-500 focus:outline-none" placeholder="••••••••" />
           </div>
 
-          <button type="submit" class="w-full rounded-lg bg-sky-700 px-4 py-3 font-semibold text-white transition hover:bg-sky-800">إنشاء الحساب</button>
+          <button type="submit" class="ministry-btn w-full rounded-lg px-4 py-3 font-semibold">{{ t('register', request) }}</button>
 
           <div class="text-center text-sm text-slate-600">
-            لديك حساب بالفعل؟
-            <a href="/login" class="font-semibold text-sky-700">تسجيل الدخول</a>
+            {{ 'لديك حساب بالفعل؟' if lang == 'ar' else 'Already have an account?' }} <a href="/login" class="font-semibold" style="color:var(--syrian-emerald)">{{ t('login', request) }}</a>
           </div>
         </form>
       </div>

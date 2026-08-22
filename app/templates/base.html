@@ -1,23 +1,20 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="{{ language }}" dir="{{ 'rtl' if language == 'ar' else 'ltr' }}">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{{ title }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/css/ministry-theme.css" />
   </head>
-  <body class="bg-slate-100 text-slate-800" dir="rtl">
-    <main class="max-w-5xl mx-auto py-12 px-4">
-      <div class="bg-white rounded-xl shadow-sm border p-8">
-        <p class="text-sm text-sky-700 font-semibold">BALIGHNA | بلّغنا</p>
-        <h1 class="mt-3 text-3xl font-bold">بلّغنا، والباقي علينا</h1>
-        <p class="mt-4 text-lg text-slate-600">
-          منصة ذكية لإدارة ومتابعة وتوجيه بلاغات الخدمات العامة.
-        </p>
-        <div class="mt-8 rounded-lg bg-sky-50 border border-sky-100 p-4 text-sm text-sky-900">
-          النظام في مرحلة التأسيس الأساسية، مع قاعدة بياناتٍ رسمية، كياناتٍ إدارية، وتوجيه البلاغات إلى الجهة المسؤولة.
-        </div>
-      </div>
+  <body dir="{{ 'rtl' if language == 'ar' else 'ltr' }}">
+    <nav class="ministry-nav text-white"><div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3"><a href="/"><img class="ministry-logo" src="/static/images/horizntal-logo.png" alt="{{ 'شعار وزارة الإدارة المحلية والبيئة' if language == 'ar' else 'Ministry of Local Administration and Environment Logo' }}" /></a><div class="flex items-center gap-3 text-sm">{% if request.session.get('user_id') %}<a href="{{ '/admin' if request.session.get('user_role') == 'admin' else '/citizen' }}">{{ 'لوحة التحكم' if language == 'ar' else 'Dashboard' }}</a><form method="post" action="/logout"><button type="submit" class="rounded-lg border border-white/50 px-3 py-2">{{ t('logout', request) }}</button></form>{% else %}<a href="/login">{{ t('login', request) }}</a><a class="rounded-lg border border-white/50 px-3 py-2" href="/register">{{ t('register', request) }}</a>{% endif %}<a class="rounded-lg bg-white/10 px-3 py-2" href="/set-language/{{ 'en' if language == 'ar' else 'ar' }}">{{ 'EN' if language == 'ar' else 'العربية' }}</a></div></div></nav>
+    <main>
+      <section class="ministry-pattern"><div class="mx-auto grid max-w-7xl items-center gap-10 px-6 py-16 md:grid-cols-2"><div><p class="font-semibold" style="color:var(--syrian-gold)">{{ 'وزارة الإدارة المحلية والبيئة | الجمهورية العربية السورية' if language == 'ar' else 'Ministry of Local Administration and Environment | Syrian Arab Republic' }}</p><h1 class="mt-4 text-5xl font-bold" style="color:var(--syrian-forest)">{{ 'بلّغنا' if language == 'ar' else 'BALIGHNA' }}</h1><p class="mt-4 max-w-xl text-xl text-stone-700">{{ 'منصة رقمية لتقديم ومتابعة وتوجيه بلاغات الخدمات العامة' if language == 'ar' else 'A Digital Platform for Reporting, Routing and Tracking Public Service Complaints' }}</p><div class="mt-8 flex gap-3"><a class="ministry-btn rounded-lg px-5 py-3 font-semibold" href="/register">{{ 'قدّم بلاغاً' if language == 'ar' else 'Submit a Complaint' }}</a><a class="rounded-lg border px-5 py-3 font-semibold" href="/login">{{ t('login', request) }}</a></div></div><div class="flex justify-center"><img class="max-h-80 w-full max-w-sm object-contain" src="/static/images/vertical-logo.png" alt="{{ 'شعار وزارة الإدارة المحلية والبيئة' if language == 'ar' else 'Ministry of Local Administration and Environment Logo' }}" /></div></div></section>
+      <section class="mx-auto max-w-7xl px-6 py-16"><h2 class="text-3xl font-bold" style="color:var(--syrian-forest)">{{ 'عن وزارة الإدارة المحلية والبيئة' if language == 'ar' else 'About the Ministry' }}</h2><p class="mt-5 max-w-4xl leading-8 text-stone-700">{{ 'تعمل وزارة الإدارة المحلية والبيئة على تطوير منظومة الإدارة المحلية في الجمهورية العربية السورية، وتعزيز اللامركزية الإدارية الفعالة، ودعم التحول الرقمي، وتحسين جودة الخدمات المقدمة للمواطنين، وتوحيد البيانات والإحصاءات لتحقيق تنمية محلية وبيئية مستدامة.' if language == 'ar' else 'The Ministry works to develop Syria’s local administration system, strengthen effective decentralization, support digital transformation, improve public services, unify data and statistics, and contribute to sustainable local and environmental development.' }}</p></section>
+      <section class="bg-white"><div class="mx-auto max-w-7xl px-6 py-16"><h2 class="text-3xl font-bold" style="color:var(--syrian-forest)">{{ 'ما هي منصة بلّغنا؟' if language == 'ar' else 'What is BALIGHNA?' }}</h2><div class="mt-8 grid gap-4 md:grid-cols-5 text-center">{% for item in (['المواطن يرسل المشكلة','بلّغنا يصنف البلاغ','يحدد الأولوية','يوجه للجهة المختصة','يتابع المواطن النتيجة'] if language == 'ar' else ['Citizen reports','BALIGHNA classifies','Priority is identified','Entity receives routing','Citizen tracks outcome']) %}<div class="rounded-lg border p-4 font-semibold" style="border-color:var(--syrian-sand)">{{ item }}</div>{% endfor %}</div></div></section>
+      <section class="mx-auto max-w-7xl px-6 py-16"><h2 class="text-3xl font-bold" style="color:var(--syrian-forest)">{{ 'خدمات محلية أقرب للمواطن' if language == 'ar' else 'Local Services Closer to Citizens' }}</h2><p class="mt-4 max-w-3xl text-stone-700">{{ 'تساهم بلّغنا في توحيد مسار البلاغات، وتسريع وصولها إلى الجهة المختصة، وتحويل بيانات الشكاوى إلى معلومات تساعد في تحديد الأولويات وتحسين الخدمات المحلية.' if language == 'ar' else 'BALIGHNA helps unify complaint workflows, accelerate routing to the responsible entity, and transform complaint data into actionable insights for better local services.' }}</p></section>
     </main>
+    <footer class="ministry-nav text-white"><div class="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-8 md:flex-row md:items-center md:justify-between"><img class="ministry-logo" src="/static/images/horizntal-logo.png" alt="Ministry logo" /><div><p>{{ 'وزارة الإدارة المحلية والبيئة | الجمهورية العربية السورية' if language == 'ar' else 'Ministry of Local Administration and Environment | Syrian Arab Republic' }}</p><p class="text-sm text-white/70">{{ 'بلّغنا — منصة البلاغات والخدمات المحلية' if language == 'ar' else 'BALIGHNA — Public Service Complaints Platform' }} | {{ 'جميع الحقوق محفوظة' if language == 'ar' else 'All rights reserved' }} {{ now().year if now is defined else '2026' }}</p></div></div></footer>
   </body>
 </html>

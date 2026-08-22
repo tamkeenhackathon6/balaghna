@@ -115,3 +115,33 @@ Completed:
 - Restricted citizen governorate selection and admin/map filters to the 14 Syrian governorates.
 - Centered citizen and admin maps on Damascus while preserving each complaint's stored marker coordinates.
 - Reset and reseeded the local development database to remove persisted non-Syrian demo records.
+
+## Ministry Branding and Bilingual Localization
+
+Completed:
+
+- Added ministry-first public landing branding using the supplied horizontal and vertical logo assets.
+- Added centralized Syrian visual identity CSS tokens and session-persistent Arabic/English localization helpers.
+- Added Arabic/English status and priority labels without changing machine-readable database values.
+- Updated public landing and primary complaint surfaces to use localized labels and ministry identity.
+
+Known limitation: existing free-text timeline notes remain in their original stored language; only surrounding UI and generated labels are centrally localized.
+
+## Global Design System and Localization Correction
+
+Completed:
+
+- Extended the centralized ministry theme to override legacy primary-blue surfaces across authenticated pages.
+- Added the ministry logo and language switcher to public, authentication, and key admin surfaces.
+- Localized raw status and priority labels in complaint cards, tables, admin forms, and map API popup data while preserving internal enum values.
+- Verified session-persistent language switching through login and authenticated admin navigation.
+
+## Authenticated Layout Consistency Correction
+
+Completed:
+
+- Replaced duplicated legacy authenticated navigation on dashboard, list, creation, and citizen detail pages with one shared ministry header partial.
+- Added clickable ministry logo navigation to the public landing page from authenticated and auth-page surfaces.
+- Added global language controls, role-aware navigation, current-user context, and logout to the shared authenticated header.
+- Added history-aware Back controls to login and registration with a safe landing-page fallback.
+- Verified all primary citizen and admin pages render with ministry branding and preserve English session selection after login.

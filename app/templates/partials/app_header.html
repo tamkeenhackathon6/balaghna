@@ -1,0 +1,22 @@
+{% set lang = current_language(request) %}
+<nav class="ministry-nav text-white shadow-sm">
+  <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
+    <a href="/" class="shrink-0" aria-label="{{ 'العودة إلى الصفحة الرئيسية' if lang == 'ar' else 'Return to landing page' }}">
+      <img class="ministry-logo" src="/static/images/horizntal-logo.png" alt="{{ 'شعار وزارة الإدارة المحلية والبيئة' if lang == 'ar' else 'Ministry of Local Administration and Environment Logo' }}" />
+    </a>
+    <div class="flex flex-wrap items-center gap-2 text-sm">
+      {% if user.role == 'admin' %}
+      <a href="/admin" class="rounded-lg border border-white/30 px-3 py-2 hover:bg-white/10">{{ 'لوحة التحكم' if lang == 'ar' else 'Dashboard' }}</a>
+      <a href="/admin/complaints" class="rounded-lg border border-white/30 px-3 py-2 hover:bg-white/10">{{ 'البلاغات' if lang == 'ar' else 'Complaints' }}</a>
+      <a href="/admin/map" class="rounded-lg border border-white/30 px-3 py-2 hover:bg-white/10">{{ 'الخريطة' if lang == 'ar' else 'Map' }}</a>
+      {% else %}
+      <a href="/citizen" class="rounded-lg border border-white/30 px-3 py-2 hover:bg-white/10">{{ 'الرئيسية' if lang == 'ar' else 'Home' }}</a>
+      <a href="/citizen/complaints" class="rounded-lg border border-white/30 px-3 py-2 hover:bg-white/10">{{ 'بلاغاتي' if lang == 'ar' else 'My Complaints' }}</a>
+      <a href="/citizen/complaints/new" class="rounded-lg border border-white/30 px-3 py-2 hover:bg-white/10">{{ 'إنشاء بلاغ' if lang == 'ar' else 'Create Complaint' }}</a>
+      {% endif %}
+      <a href="/set-language/{{ 'en' if lang == 'ar' else 'ar' }}" class="rounded-lg border border-white/50 px-3 py-2">{{ 'EN' if lang == 'ar' else 'العربية' }}</a>
+      <span class="hidden text-white/80 lg:inline">{{ user.name }} · {{ 'إدارة' if user.role == 'admin' and lang == 'ar' else ('Admin' if user.role == 'admin' else ('مواطن' if lang == 'ar' else 'Citizen')) }}</span>
+      <form method="post" action="/logout"><button type="submit" class="rounded-lg bg-white/10 px-3 py-2 hover:bg-white/20">{{ t('logout', request) }}</button></form>
+    </div>
+  </div>
+</nav>

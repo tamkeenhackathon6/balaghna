@@ -22,9 +22,11 @@ from app.models.department import Department
 from app.models.user import User
 from app.services.analyzer_service import analyze_complaint
 from app.services.auth_service import authenticate_user, create_user
+from app.services.i18n_service import department_label, governorate_label, language, priority_label, status_label, translate
 
 router = APIRouter(prefix="", tags=["auth"])
 templates = Jinja2Templates(directory=str(BASE_DIR / "app" / "templates"))
+templates.env.globals.update(t=translate, status_label=status_label, priority_label=priority_label, department_label=department_label, governorate_label=governorate_label, current_language=language)
 settings = get_settings()
 ALLOWED_PRIORITIES = {"low", "medium", "high", "urgent"}
 ALLOWED_STATUSES = {"new", "assigned", "in_progress", "resolved", "closed"}
@@ -39,6 +41,14 @@ STATUS_LABELS = {
     "resolved": "تم الحل",
     "closed": "مغلق",
 }
+
+
+@router.get("/set-language/{selected_language}")
+async def set_language(request: Request, selected_language: str):
+    if selected_language not in {"ar", "en"}:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Language not found")
+    request.session["language"] = selected_language
+    return RedirectResponse(url=request.headers.get("referer") or "/", status_code=status.HTTP_303_SEE_OTHER)
 
 
 class ComplaintAnalysisRequest(BaseModel):
@@ -621,6 +631,7 @@ async def admin_complaint_map(
 
 @router.get("/api/map/complaints")
 async def map_complaints_api(
+    request: Request,
     user: User = Depends(require_role("admin")),
     db: Session = Depends(get_db),
     status: str | None = Query(default=None),
@@ -661,6 +672,10 @@ async def map_complaints_api(
             "priority": complaint.priority,
             "status": complaint.status,
             "department": complaint.department.name if complaint.department else None,
+            "priority_label": priority_label(complaint.priority, request),
+            "status_label": status_label(complaint.status, request),
+            "department_label": department_label(complaint.department.name if complaint.department else None, request),
+            "governorate_label": governorate_label(complaint.governorate, request),
         }
         for complaint in complaints
     ]

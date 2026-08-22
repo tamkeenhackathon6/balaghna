@@ -1,26 +1,14 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+{% set lang = current_language(request) %}<html lang="{{ lang }}" dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{{ title }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/css/ministry-theme.css" />
   </head>
-  <body class="bg-slate-100 text-slate-800" dir="rtl">
-    <nav class="bg-sky-800 text-white">
-      <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <div>
-          <div class="text-xs font-semibold">BALIGHNA | بلّغنا</div>
-          <div class="text-lg font-bold">{{ slogan }}</div>
-        </div>
-        <div class="flex items-center gap-3">
-          <a href="/citizen" class="rounded-lg border border-white/60 px-4 py-2 text-sm font-medium hover:bg-white/10">لوحة المواطن</a>
-          <form method="post" action="/logout">
-            <button type="submit" class="rounded-lg border border-white/60 px-4 py-2 text-sm font-medium hover:bg-white/10">تسجيل الخروج</button>
-          </form>
-        </div>
-      </div>
-    </nav>
+  <body class="text-slate-800" dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}">
+    {% include 'partials/app_header.html' %}
 
     <main class="mx-auto max-w-5xl px-6 py-10">
       <div class="mb-6 flex items-center justify-between">
@@ -35,8 +23,8 @@
         <div class="lg:col-span-2 space-y-6">
           <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div class="flex flex-wrap gap-3">
-              <span class="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800">{{ status_labels.get(complaint.status, complaint.status) }}</span>
-              <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">{{ complaint.priority }}</span>
+              <span class="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800">{{ status_label(complaint.status, request) }}</span>
+              <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">{{ priority_label(complaint.priority, request) }}</span>
               {% if complaint.category %}
               <span class="rounded-full bg-slate-200 px-3 py-1 text-xs font-semibold text-slate-700">{{ complaint.category.name }}</span>
               {% endif %}
@@ -78,7 +66,7 @@
             <dl class="space-y-3 text-sm text-slate-700">
               <div><dt class="font-semibold text-slate-900">الجهة المسؤولة عن المتابعة</dt><dd>{% if complaint.department %}{{ complaint.department.name }}{% if complaint.routing_confidence %}<span class="mt-1 block text-xs text-emerald-700">تم التوجيه تلقائياً</span>{% endif %}{% else %}بانتظار التوجيه{% endif %}</dd></div>
               <div><dt class="font-semibold text-slate-900">سبب التوجيه</dt><dd>{{ complaint.routing_reason or 'بانتظار تحديد سبب التوجيه' }}</dd></div>
-              <div><dt class="font-semibold text-slate-900">الحالة</dt><dd>{{ status_labels.get(complaint.status, complaint.status) }}</dd></div>
+              <div><dt class="font-semibold text-slate-900">{{ t('status', request) }}</dt><dd>{{ status_label(complaint.status, request) }}</dd></div>
               <div><dt class="font-semibold text-slate-900">آخر تحديث</dt><dd>{% if complaint.updates %}{{ complaint.updates[0].created_at.strftime('%Y-%m-%d %H:%M') }}{% else %}{{ complaint.created_at.strftime('%Y-%m-%d %H:%M') }}{% endif %}</dd></div>
               <div><dt class="font-semibold text-slate-900">المحافظة</dt><dd>{{ complaint.governorate or 'غير محدد' }}</dd></div>
               <div><dt class="font-semibold text-slate-900">العنوان</dt><dd>{{ complaint.address or 'غير محدد' }}</dd></div>
