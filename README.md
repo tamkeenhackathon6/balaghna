@@ -1,6 +1,6 @@
 # BALIGHNA | بلّغنا
 
-BALIGHNA is a smart public-service complaint management platform for the Ministry of Local Administration.
+BALIGHNA is a smart public-service complaint management platform for the Syrian local-administration context.
 
 ## Mission
 
@@ -30,6 +30,10 @@ The system is built around the official departments that must receive complaints
 
 This routing model is a core principle of BALIGHNA: complaints are not left unassigned; they are directed to the responsible entity based on category, issue type, and local administrative context.
 
+## Geographic scope
+
+The MVP uses Syrian governorates only: دمشق، ريف دمشق، حلب، حمص، حماة، اللاذقية، طرطوس، إدلب، درعا، السويداء، القنيطرة، دير الزور، الرقة، والحسكة. Demo complaints are concentrated around Damascus and Rural Damascus, with additional examples across Syrian governorates. Map coordinates are approximate demo locations, not survey-grade measurements.
+
 ## Tech stack
 
 - Python 3.11+
@@ -49,6 +53,8 @@ python3 -m venv .venv
 .venv/bin/python -m app.seed
 .venv/bin/uvicorn app.main:app --reload
 ```
+
+To reset the local development demo database after changing seed data, remove only `data/app.db` and rerun `.venv/bin/python -m app.seed`. Do not use this reset procedure against production data.
 
 Then open:
 

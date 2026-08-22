@@ -6,6 +6,7 @@
 - Arabic name: بلّغنا
 - Slogan: بلّغنا، والباقي علينا
 - Purpose: smart management, follow-up, and routing of public-service complaints.
+- Geographic context: Syrian local administration; the MVP uses only the 14 Syrian governorates.
 
 ## 2. Core purpose
 
@@ -236,7 +237,7 @@ Suggested mappings:
 
 ## 13. Demo data
 
-The seed process creates demo users and realistic Arabic complaints covering all major participating entities and routing scenarios.
+The seed process creates demo users and realistic Arabic complaints covering all major participating entities and routing scenarios. The demo geography is Syrian, with a concentrated Damascus and Rural Damascus cluster and additional markers in other Syrian governorates. Coordinates are approximate demonstration points only.
 
 ## 14. Smart complaint analysis
 

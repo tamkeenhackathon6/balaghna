@@ -106,3 +106,12 @@ Completed:
 - Verified invalid department IDs are rejected and current official routing is reflected in citizen and admin views.
 
 Release Status: READY
+
+## Geographic Data Correction: Syrian Demo Context
+
+Completed:
+
+- Replaced non-Syrian demo governorates, coordinates, and primary location text with Syrian demo geography.
+- Restricted citizen governorate selection and admin/map filters to the 14 Syrian governorates.
+- Centered citizen and admin maps on Damascus while preserving each complaint's stored marker coordinates.
+- Reset and reseeded the local development database to remove persisted non-Syrian demo records.

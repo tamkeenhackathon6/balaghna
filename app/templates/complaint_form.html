@@ -78,7 +78,10 @@
 
           <div>
             <label for="governorate" class="mb-2 block text-sm font-medium text-slate-700">المحافظة</label>
-            <input id="governorate" name="governorate" type="text" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 focus:border-sky-500 focus:outline-none" placeholder="مثال: عمان" />
+            <select id="governorate" name="governorate" required class="w-full rounded-xl border border-slate-300 px-3 py-2.5 focus:border-sky-500 focus:outline-none">
+              <option value="">اختر المحافظة</option>
+              {% for governorate in governorates %}<option value="{{ governorate }}">{{ governorate }}</option>{% endfor %}
+            </select>
           </div>
 
           <div>
@@ -121,8 +124,8 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script>
-      const defaultLat = 31.9519;
-      const defaultLng = 35.9106;
+      const defaultLat = 33.5138;
+      const defaultLng = 36.2765;
       const map = L.map('map').setView([defaultLat, defaultLng], 11);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,

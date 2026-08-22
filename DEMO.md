@@ -1,6 +1,6 @@
 # BALIGHNA Demo Flow
 
-Duration: 2-3 minutes
+Duration: 2-3 minutes. The demo uses approximate Syrian locations, centered visually on Damascus.
 
 ## 1. Citizen report and smart routing
 
@@ -18,7 +18,7 @@ Duration: 2-3 minutes
    - الأولوية: `urgent` because the text contains a safety risk.
    - الجهة المختصة: `مديرية الخدمات المحلية`
    - سبب التوجيه: the complaint concerns a pothole and an immediate local daily service.
-6. Choose `اعتماد الاقتراح`, set the location, and submit the complaint.
+6. Choose `اعتماد الاقتراح`, set the governorate to `دمشق` or `ريف دمشق`, choose an approximate location, and submit the complaint.
 7. Open the detail view to show the automatic routing event, current responsible entity, routing reason, and status.
 
 ## 2. Admin confirmation and workflow

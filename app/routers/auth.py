@@ -28,6 +28,10 @@ templates = Jinja2Templates(directory=str(BASE_DIR / "app" / "templates"))
 settings = get_settings()
 ALLOWED_PRIORITIES = {"low", "medium", "high", "urgent"}
 ALLOWED_STATUSES = {"new", "assigned", "in_progress", "resolved", "closed"}
+SYRIAN_GOVERNORATES = (
+    "دمشق", "ريف دمشق", "حلب", "حمص", "حماة", "اللاذقية", "طرطوس",
+    "إدلب", "درعا", "السويداء", "القنيطرة", "دير الزور", "الرقة", "الحسكة",
+)
 STATUS_LABELS = {
     "new": "جديد",
     "assigned": "تم الإسناد",
@@ -262,7 +266,7 @@ async def complaint_form_page(request: Request, user: User = Depends(require_rol
     return templates.TemplateResponse(
         request,
         "complaint_form.html",
-        {"title": "إنشاء بلاغ جديد", "slogan": settings.project_slogan, "user": user, "categories": categories},
+        {"title": "إنشاء بلاغ جديد", "slogan": settings.project_slogan, "user": user, "categories": categories, "governorates": SYRIAN_GOVERNORATES},
     )
 
 
@@ -301,6 +305,7 @@ async def complaint_form_submit(
                 "slogan": settings.project_slogan,
                 "user": user,
                 "categories": categories,
+                "governorates": SYRIAN_GOVERNORATES,
                 "error": "يرجى تعبئة عنوان البلاغ، الوصف، واختيار نوع المشكلة.",
             },
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -318,6 +323,7 @@ async def complaint_form_submit(
                 "slogan": settings.project_slogan,
                 "user": user,
                 "categories": categories,
+                "governorates": SYRIAN_GOVERNORATES,
                 "error": str(exc),
             },
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -340,6 +346,7 @@ async def complaint_form_submit(
                 "slogan": settings.project_slogan,
                 "user": user,
                 "categories": categories,
+                "governorates": SYRIAN_GOVERNORATES,
                 "error": str(exc),
             },
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -351,6 +358,9 @@ async def complaint_form_submit(
         department = db.get(Department, analysis["department_id"])
         if category is None or department is None:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Analyzer recommendation is invalid")
+
+    if governorate and governorate.strip() not in SYRIAN_GOVERNORATES:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid Syrian governorate")
 
     complaint = Complaint(
         user_id=user.id,
@@ -563,12 +573,7 @@ async def admin_complaints_list(
     complaints = db.scalars(stmt).all()
     categories = db.scalars(select(Category).order_by(Category.name.asc())).all()
     departments = db.scalars(select(Department).order_by(Department.name.asc())).all()
-    governorates = db.scalars(
-        select(Complaint.governorate)
-        .where(Complaint.governorate.isnot(None))
-        .distinct()
-        .order_by(Complaint.governorate.asc())
-    ).all()
+    governorates = SYRIAN_GOVERNORATES
 
     return templates.TemplateResponse(
         request,
@@ -599,12 +604,7 @@ async def admin_complaint_map(
 ):
     categories = db.scalars(select(Category).order_by(Category.name.asc())).all()
     departments = db.scalars(select(Department).order_by(Department.name.asc())).all()
-    governorates = db.scalars(
-        select(Complaint.governorate)
-        .where(Complaint.governorate.isnot(None))
-        .distinct()
-        .order_by(Complaint.governorate.asc())
-    ).all()
+    governorates = SYRIAN_GOVERNORATES
     return templates.TemplateResponse(
         request,
         "admin_map.html",
