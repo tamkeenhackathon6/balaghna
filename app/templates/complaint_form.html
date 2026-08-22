@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      #map { height: 320px; width: 100%; border-radius: 1rem; overflow: hidden; }
+    </style>
+  </head>
+  <body class="bg-slate-100 text-slate-800" dir="rtl">
+    <nav class="bg-sky-800 text-white">
+      <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+        <div>
+          <div class="text-xs font-semibold">BALIGHNA | بلّغنا</div>
+          <div class="text-lg font-bold">{{ slogan }}</div>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="/citizen" class="rounded-lg border border-white/60 px-4 py-2 text-sm font-medium hover:bg-white/10">لوحة المواطن</a>
+          <form method="post" action="/logout">
+            <button type="submit" class="rounded-lg border border-white/60 px-4 py-2 text-sm font-medium hover:bg-white/10">تسجيل الخروج</button>
+          </form>
+        </div>
+      </div>
+    </nav>
+
+    <main class="mx-auto max-w-5xl px-6 py-10">
+      <div class="mb-6 flex items-center justify-between">
+        <div>
+          <p class="text-sm text-sky-700">إضافة بلاغ جديد</p>
+          <h1 class="text-3xl font-bold">إنشاء بلاغ جديد</h1>
+        </div>
+        <a href="/citizen/complaints" class="rounded-xl border border-slate-300 bg-white px-4 py-2 font-medium text-slate-700 hover:bg-slate-50">رجوع إلى بلاغاتي</a>
+      </div>
+
+      {% if error %}
+      <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{{ error }}</div>
+      {% endif %}
+
+      <form method="post" action="/citizen/complaints/new" enctype="multipart/form-data" class="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="grid gap-6 md:grid-cols-2">
+          <div class="md:col-span-2">
+            <label for="title" class="mb-2 block text-sm font-medium text-slate-700">عنوان البلاغ</label>
+            <input id="title" name="title" type="text" required class="w-full rounded-xl border border-slate-300 px-3 py-2.5 focus:border-sky-500 focus:outline-none" placeholder="مثال: تراكم نفايات في الحي" />
+          </div>
+
+          <div class="md:col-span-2">
+            <label for="description" class="mb-2 block text-sm font-medium text-slate-700">وصف المشكلة</label>
+            <textarea id="description" name="description" rows="5" required class="w-full rounded-xl border border-slate-300 px-3 py-2.5 focus:border-sky-500 focus:outline-none" placeholder="اكتب تفاصيل المشكلة، موقعها، وتأثيرها على المواطنين..."></textarea>
+          </div>
+
+          <div>
+            <label for="category_id" class="mb-2 block text-sm font-medium text-slate-700">نوع المشكلة</label>
+            <select id="category_id" name="category_id" required class="w-full rounded-xl border border-slate-300 px-3 py-2.5 focus:border-sky-500 focus:outline-none">
+              <option value="">اختر نوع المشكلة</option>
+              {% for category in categories %}
+              <option value="{{ category.id }}">{{ category.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div>
+            <label for="governorate" class="mb-2 block text-sm font-medium text-slate-700">المحافظة</label>
+            <input id="governorate" name="governorate" type="text" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 focus:border-sky-500 focus:outline-none" placeholder="مثال: عمان" />
+          </div>
+
+          <div>
+            <label for="address" class="mb-2 block text-sm font-medium text-slate-700">العنوان / الشارع</label>
+            <input id="address" name="address" type="text" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 focus:border-sky-500 focus:outline-none" placeholder="مثال: شارع النخيل، حي العزيزية" />
+          </div>
+
+          <div>
+            <label for="area" class="mb-2 block text-sm font-medium text-slate-700">المنطقة / الحي</label>
+            <input id="area" name="area" type="text" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 focus:border-sky-500 focus:outline-none" placeholder="مثال: حي النزهة" />
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="mb-2 block text-sm font-medium text-slate-700">الموقع على الخريطة</label>
+            <div id="map" class="rounded-xl border border-slate-300"></div>
+          </div>
+
+          <div>
+            <label for="latitude" class="mb-2 block text-sm font-medium text-slate-700">خط العرض</label>
+            <input id="latitude" name="latitude" type="number" step="any" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 focus:border-sky-500 focus:outline-none" readonly />
+          </div>
+
+          <div>
+            <label for="longitude" class="mb-2 block text-sm font-medium text-slate-700">خط الطول</label>
+            <input id="longitude" name="longitude" type="number" step="any" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 focus:border-sky-500 focus:outline-none" readonly />
+          </div>
+
+          <div class="md:col-span-2">
+            <label for="image" class="mb-2 block text-sm font-medium text-slate-700">صورة المشكلة</label>
+            <input id="image" name="image" type="file" accept=".jpg,.jpeg,.png,.webp" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 focus:border-sky-500 focus:outline-none" />
+            <p class="mt-2 text-xs text-slate-500">الصيغ المسموح بها: JPG، JPEG، PNG، WEBP. الحد الأقصى: 5 MB.</p>
+          </div>
+        </div>
+
+        <div class="flex justify-end">
+          <button type="submit" class="rounded-xl bg-sky-700 px-5 py-3 font-semibold text-white hover:bg-sky-800">إرسال البلاغ</button>
+        </div>
+      </form>
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script>
+      const defaultLat = 31.9519;
+      const defaultLng = 35.9106;
+      const map = L.map('map').setView([defaultLat, defaultLng], 11);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      const marker = L.marker([defaultLat, defaultLng]).addTo(map);
+
+      function updateCoords(lat, lng) {
+        document.getElementById('latitude').value = lat.toFixed(6);
+        document.getElementById('longitude').value = lng.toFixed(6);
+        marker.setLatLng([lat, lng]);
+      }
+
+      map.on('click', (event) => {
+        updateCoords(event.latlng.lat, event.latlng.lng);
+      });
+
+      document.getElementById('latitude').value = defaultLat.toFixed(6);
+      document.getElementById('longitude').value = defaultLng.toFixed(6);
+    </script>
+  </body>
+</html>

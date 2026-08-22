@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ title }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-100 text-slate-800" dir="rtl">
+    <nav class="bg-sky-800 text-white">
+      <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+        <div>
+          <div class="text-xs font-semibold">BALIGHNA | بلّغنا</div>
+          <div class="text-lg font-bold">{{ slogan }}</div>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="/admin/complaints" class="rounded-lg border border-white/60 px-4 py-2 text-sm font-medium hover:bg-white/10">قائمة البلاغات</a>
+          <form method="post" action="/logout">
+            <button type="submit" class="rounded-lg border border-white/60 px-4 py-2 text-sm font-medium hover:bg-white/10">تسجيل الخروج</button>
+          </form>
+        </div>
+      </div>
+    </nav>
+
+    <main class="mx-auto max-w-7xl px-6 py-8">
+      <div class="mb-6 flex items-center justify-between">
+        <div>
+          <p class="text-sm text-sky-700">تفاصيل البلاغ</p>
+          <h1 class="text-3xl font-bold">#{{ complaint.id }} • {{ complaint.title }}</h1>
+        </div>
+        <a href="/admin/complaints" class="rounded-xl border border-slate-300 bg-white px-4 py-2 font-medium text-slate-700 hover:bg-slate-50">رجوع</a>
+      </div>
+
+      <div class="grid gap-6 lg:grid-cols-[2fr_1fr]">
+        <div class="space-y-6">
+          <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="mb-4 flex flex-wrap gap-2">
+              <span class="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800">{{ complaint.status }}</span>
+              <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">{{ complaint.priority }}</span>
+              {% if complaint.category %}<span class="rounded-full bg-slate-200 px-3 py-1 text-xs font-semibold text-slate-700">{{ complaint.category.name }}</span>{% endif %}
+            </div>
+            <p class="whitespace-pre-line text-slate-700">{{ complaint.description }}</p>
+          </div>
+
+          <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 class="mb-4 text-xl font-bold">سجل التحديثات</h2>
+            <ul class="space-y-3">
+              {% for update in complaint.updates %}
+              <li class="rounded-xl bg-slate-50 p-3 text-sm text-slate-700">
+                <div class="font-semibold text-slate-900">{{ update.note or 'تم تحديث البلاغ' }}</div>
+                <div class="mt-1 text-xs text-slate-500">{{ update.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+              </li>
+              {% else %}
+              <li class="rounded-xl bg-slate-50 p-3 text-sm text-slate-600">لا توجد تحديثات بعد.</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+
+        <div class="space-y-6">
+          <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 class="mb-4 text-xl font-bold">الجهة المسؤولة عن البلاغ</h2>
+            <div class="rounded-xl bg-sky-50 p-4 text-sm text-sky-900">
+              {% if complaint.department %}
+                {{ complaint.department.name }}
+              {% else %}
+                لم يتم توجيه البلاغ بعد
+              {% endif %}
+            </div>
+            <div class="mt-4 text-sm text-slate-600">
+              <div><span class="font-semibold text-slate-800">المواطن:</span> {{ complaint.user.name if complaint.user else 'غير معروف' }}</div>
+              <div class="mt-2"><span class="font-semibold text-slate-800">المحافظة:</span> {{ complaint.governorate or 'غير محدد' }}</div>
+              <div class="mt-2"><span class="font-semibold text-slate-800">المنطقة:</span> {{ complaint.area or 'غير محدد' }}</div>
+              <div class="mt-2"><span class="font-semibold text-slate-800">العنوان:</span> {{ complaint.address or 'غير محدد' }}</div>
+            </div>
+          </div>
+
+          <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 class="mb-4 text-xl font-bold">توجيه رسمي</h2>
+            <form method="post" action="/admin/complaints/{{ complaint.id }}" class="space-y-4">
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700">الجهة المختصة</label>
+                <select name="department_id" class="w-full rounded-xl border border-slate-300 px-3 py-2.5">
+                  <option value="">-- اختر جهة --</option>
+                  {% for department in departments %}
+                  <option value="{{ department.id }}" {% if complaint.department and complaint.department.id == department.id %}selected{% endif %}>{{ department.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700">الأولوية</label>
+                <select name="priority" class="w-full rounded-xl border border-slate-300 px-3 py-2.5">
+                  <option value="low" {% if complaint.priority == 'low' %}selected{% endif %}>low</option>
+                  <option value="medium" {% if complaint.priority == 'medium' %}selected{% endif %}>medium</option>
+                  <option value="high" {% if complaint.priority == 'high' %}selected{% endif %}>high</option>
+                  <option value="urgent" {% if complaint.priority == 'urgent' %}selected{% endif %}>urgent</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700">الحالة</label>
+                <select name="status_value" class="w-full rounded-xl border border-slate-300 px-3 py-2.5">
+                  <option value="new" {% if complaint.status == 'new' %}selected{% endif %}>new</option>
+                  <option value="assigned" {% if complaint.status == 'assigned' %}selected{% endif %}>assigned</option>
+                  <option value="in_progress" {% if complaint.status == 'in_progress' %}selected{% endif %}>in_progress</option>
+                  <option value="resolved" {% if complaint.status == 'resolved' %}selected{% endif %}>resolved</option>
+                  <option value="closed" {% if complaint.status == 'closed' %}selected{% endif %}>closed</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700">ملاحظة التوجيه</label>
+                <textarea name="routing_reason" rows="4" class="w-full rounded-xl border border-slate-300 px-3 py-2.5" placeholder="مثال: تم توجيه البلاغ إلى مديرية الخدمات المحلية">{{ complaint.routing_reason or '' }}</textarea>
+              </div>
+
+              <button type="submit" class="w-full rounded-xl bg-sky-700 px-4 py-3 font-semibold text-white hover:bg-sky-800">حفظ التوجيه</button>
+            </form>
+          </div>
+
+          <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 class="mb-4 text-xl font-bold">إرشادات الجهات الرسمية</h2>
+            <div class="space-y-3 text-sm text-slate-700">
+              <div class="rounded-lg bg-slate-50 p-3"><span class="font-semibold text-slate-900">مديرية الخدمات المحلية:</span> النفايات، النظافة، الحدائق، الأرصفة، الإنارة، الحفر والخدمات اليومية.</div>
+              <div class="rounded-lg bg-slate-50 p-3"><span class="font-semibold text-slate-900">مديريات المجالس المحلية والإدارة المحلية:</span> متابعة أداء الوحدات الإدارية، شكاوى المواطنين المتعلقة بالإدارة المحلية.</div>
+              <div class="rounded-lg bg-slate-50 p-3"><span class="font-semibold text-slate-900">مديرية التخطيط والتنمية المحلية:</span> احتياجات المنطقة، أولويات المشاريع والتنمية المحلية.</div>
+              <div class="rounded-lg bg-slate-50 p-3"><span class="font-semibold text-slate-900">مديرية التنظيم والتخطيط العمراني:</span> مشاكل التنظيم، البناء، الطرق واستعمالات الأراضي.</div>
+              <div class="rounded-lg bg-slate-50 p-3"><span class="font-semibold text-slate-900">مديرية الشؤون الفنية:</span> المشاريع الخدمية، البنية التحتية، الصيانة الفنية والمتابعة التنفيذية.</div>
+              <div class="rounded-lg bg-slate-50 p-3"><span class="font-semibold text-slate-900">مديرية الشؤون المالية:</span> الموازنات المحلية، الإيرادات، النفقات والموارد.</div>
+              <div class="rounded-lg bg-slate-50 p-3"><span class="font-semibold text-slate-900">مديرية الرقابة والتفتيش:</span> المخالفات، مراقبة الأداء، التقصير الإداري.</div>
+              <div class="rounded-lg bg-slate-50 p-3"><span class="font-semibold text-slate-900">المحافظات:</span> المشاكل على مستوى المحافظة وتنسيق الجهات.</div>
+              <div class="rounded-lg bg-slate-50 p-3"><span class="font-semibold text-slate-900">مجالس المدن والبلديات والوحدات الإدارية:</span> الخدمات اليومية المحلية، البلديات والوحدات التنفيذية.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

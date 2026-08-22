@@ -1,0 +1,67 @@
+from __future__ import annotations
+
+from typing import Optional
+
+from passlib.context import CryptContext
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from app.database import SessionLocal
+from app.models.user import User
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
+
+
+def verify_password(password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(password, hashed_password)
+
+
+def get_user_by_email(email: str) -> Optional[User]:
+    normalized_email = email.strip().lower()
+    with SessionLocal() as db:
+        return db.execute(select(User).where(User.email == normalized_email)).scalar_one_or_none()
+
+
+def get_user_by_id(user_id: int) -> Optional[User]:
+    with SessionLocal() as db:
+        return db.get(User, user_id)
+
+
+def authenticate_user(email: str, password: str) -> Optional[User]:
+    user = get_user_by_email(email)
+    if not user:
+        return None
+    if not verify_password(password, user.hashed_password):
+        return None
+    return user
+
+
+def create_user(name: str, email: str, password: str, role: str = "citizen") -> User:
+    normalized_name = name.strip()
+    normalized_email = email.strip().lower()
+
+    if not normalized_name or not normalized_email or not password:
+        raise ValueError("الاسم والبريد الإلكتروني وكلمة المرور مطلوبة.")
+
+    if get_user_by_email(normalized_email):
+        raise ValueError("هذا البريد الإلكتروني مستخدم بالفعل.")
+
+    user = User(
+        name=normalized_name,
+        email=normalized_email,
+        hashed_password=hash_password(password),
+        role=role if role in {"citizen", "admin"} else "citizen",
+    )
+
+    db: Session = SessionLocal()
+    try:
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        return user
+    finally:
+        db.close()

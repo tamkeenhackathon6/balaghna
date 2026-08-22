@@ -1,0 +1,46 @@
+# Progress
+
+## Phase 1: Foundation, Architecture, Database, Entities, and Seed Data
+
+Completed:
+
+- Initialized a clean Python 3.11 + FastAPI + SQLAlchemy + SQLite project foundation.
+- Created core application structure and configuration for environment and database setup.
+- Implemented ORM models for users, categories, departments, complaints, comments, and complaint updates.
+- Added official participating entities and routing rules required by the Ministry of Local Administration.
+- Seeded demo users and realistic Arabic complaint data covering all major departments/entities.
+- Added project spec and README documentation with routing principles and official entity list.
+- Verified the app startup and database initialization using the required commands.
+
+## Phase 2: Authentication & Role-Based Access
+
+Completed:
+
+- Added secure session-based authentication with hashed passwords.
+- Implemented login, registration, logout, and protected role-based pages for citizen and admin users.
+- Enforced admin-only and citizen-only access rules.
+- Added Arabic RTL login and registration UI branded as BALIGHNA.
+- Verified demo user flows, invalid login handling, registration, logout, and role protection.
+
+## Phase 3: Citizen Complaint Experience
+
+Completed:
+
+- Added citizen dashboard, complaint list, complaint creation form, and complaint detail view.
+- Enabled complaint submission with category selection, governorate, area, address, coordinates, and optional image upload.
+- Added validation for supported image types and size limits.
+- Recorded complaint creation history and protected citizen-only complaint visibility.
+- Verified end-to-end citizen complaint submission and detail flow.
+
+## Phase 4: Admin Dashboard, Complaint Management & Official Routing
+
+Completed:
+
+- Implemented admin dashboard metrics for total complaints, new complaints, urgent complaints, in-progress complaints, resolved complaints, and pending routing counts.
+- Added complaint management table with filters for status, priority, category, department, governorate, and search.
+- Added admin complaint detail page with official-routing assignment and resolution guidance.
+- Enforced official entity routing using only the seeded participating departments.
+- Added complaint update history tracking for priority and status changes.
+- Verified valid routing assignments and invalid department rejection.
+
+Next Phase: Interactive Complaint Map & Geographic Experience

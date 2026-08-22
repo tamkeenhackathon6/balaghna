@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ title }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-100 text-slate-800" dir="rtl">
+    <nav class="bg-sky-800 text-white">
+      <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+        <div>
+          <div class="text-xs font-semibold">BALIGHNA | بلّغنا</div>
+          <div class="text-lg font-bold">{{ slogan }}</div>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="/citizen" class="rounded-lg border border-white/60 px-4 py-2 text-sm font-medium hover:bg-white/10">لوحة المواطن</a>
+          <form method="post" action="/logout">
+            <button type="submit" class="rounded-lg border border-white/60 px-4 py-2 text-sm font-medium hover:bg-white/10">تسجيل الخروج</button>
+          </form>
+        </div>
+      </div>
+    </nav>
+
+    <main class="mx-auto max-w-5xl px-6 py-10">
+      <div class="mb-6 flex items-center justify-between">
+        <div>
+          <p class="text-sm text-sky-700">تفاصيل البلاغ</p>
+          <h1 class="text-3xl font-bold">{{ complaint.title }}</h1>
+        </div>
+        <a href="/citizen/complaints" class="rounded-xl border border-slate-300 bg-white px-4 py-2 font-medium text-slate-700 hover:bg-slate-50">رجوع إلى بلاغاتي</a>
+      </div>
+
+      <div class="grid gap-6 lg:grid-cols-3">
+        <div class="lg:col-span-2 space-y-6">
+          <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="flex flex-wrap gap-3">
+              <span class="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800">{{ complaint.status }}</span>
+              <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">{{ complaint.priority }}</span>
+              {% if complaint.category %}
+              <span class="rounded-full bg-slate-200 px-3 py-1 text-xs font-semibold text-slate-700">{{ complaint.category.name }}</span>
+              {% endif %}
+            </div>
+            <p class="mt-6 whitespace-pre-line text-slate-700">{{ complaint.description }}</p>
+          </div>
+
+          {% if complaint.image_path %}
+          <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 class="mb-3 text-lg font-bold">صورة المشكلة</h2>
+            <img src="{{ complaint.image_path }}" alt="Complaint image" class="max-h-[420px] w-full rounded-xl object-cover" />
+          </div>
+          {% endif %}
+        </div>
+
+        <aside class="space-y-6">
+          <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 class="mb-3 text-lg font-bold">معلومات البلاغ</h2>
+            <dl class="space-y-3 text-sm text-slate-700">
+              <div><dt class="font-semibold text-slate-900">الجهة المسؤولة</dt><dd>{% if complaint.department %}{{ complaint.department.name }}{% else %}بانتظار تحديد الجهة المختصة{% endif %}</dd></div>
+              <div><dt class="font-semibold text-slate-900">المحافظة</dt><dd>{{ complaint.governorate or 'غير محدد' }}</dd></div>
+              <div><dt class="font-semibold text-slate-900">العنوان</dt><dd>{{ complaint.address or 'غير محدد' }}</dd></div>
+              <div><dt class="font-semibold text-slate-900">المنطقة</dt><dd>{{ complaint.area or 'غير محدد' }}</dd></div>
+              <div><dt class="font-semibold text-slate-900">الإحداثيات</dt><dd>{{ complaint.latitude or 'غير محدد' }}, {{ complaint.longitude or 'غير محدد' }}</dd></div>
+              <div><dt class="font-semibold text-slate-900">تاريخ الإنشاء</dt><dd>{{ complaint.created_at.strftime('%Y-%m-%d %H:%M') }}</dd></div>
+            </dl>
+          </div>
+
+          <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 class="mb-3 text-lg font-bold">سجل التحديثات</h2>
+            <ul class="space-y-3 text-sm text-slate-700">
+              {% for update in complaint.updates %}
+              <li class="rounded-lg bg-slate-50 p-3">
+                <div class="font-medium text-slate-900">{{ update.note or 'تم تحديث البلاغ' }}</div>
+                <div class="mt-1 text-xs text-slate-500">{{ update.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+              </li>
+              {% else %}
+              <li class="rounded-lg bg-slate-50 p-3 text-slate-600">تم إنشاء البلاغ</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </body>
+</html>

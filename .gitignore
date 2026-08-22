@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.db-journal
+.env
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.pyre/
+.DS_Store
+.idea/
+.vscode/
+
+# Keep the SQLite database tracked for this MVP
+# data/app.db

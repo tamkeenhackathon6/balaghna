@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ title }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-100 text-slate-800" dir="rtl">
+    <nav class="bg-sky-800 text-white">
+      <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+        <div>
+          <div class="text-xs font-semibold">BALIGHNA | بلّغنا</div>
+          <div class="text-lg font-bold">{{ slogan }}</div>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="/admin" class="rounded-lg border border-white/60 px-4 py-2 text-sm font-medium hover:bg-white/10">لوحة الإدارة</a>
+          <form method="post" action="/logout">
+            <button type="submit" class="rounded-lg border border-white/60 px-4 py-2 text-sm font-medium hover:bg-white/10">تسجيل الخروج</button>
+          </form>
+        </div>
+      </div>
+    </nav>
+
+    <main class="mx-auto max-w-7xl px-6 py-8">
+      <div class="mb-6 flex items-center justify-between">
+        <div>
+          <p class="text-sm text-sky-700">إدارة البلاغات</p>
+          <h1 class="text-3xl font-bold">جدول البلاغات</h1>
+        </div>
+      </div>
+
+      <form method="get" class="mb-8 grid gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:grid-cols-6">
+        <div>
+          <label class="mb-2 block text-sm font-medium text-slate-700">الحالة</label>
+          <select name="status" class="w-full rounded-xl border border-slate-300 px-3 py-2">
+            <option value="">الكل</option>
+            <option value="new" {% if status_filter == 'new' %}selected{% endif %}>new</option>
+            <option value="assigned" {% if status_filter == 'assigned' %}selected{% endif %}>assigned</option>
+            <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>in_progress</option>
+            <option value="resolved" {% if status_filter == 'resolved' %}selected{% endif %}>resolved</option>
+            <option value="closed" {% if status_filter == 'closed' %}selected{% endif %}>closed</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="mb-2 block text-sm font-medium text-slate-700">الأولوية</label>
+          <select name="priority" class="w-full rounded-xl border border-slate-300 px-3 py-2">
+            <option value="">الكل</option>
+            <option value="low" {% if priority_filter == 'low' %}selected{% endif %}>low</option>
+            <option value="medium" {% if priority_filter == 'medium' %}selected{% endif %}>medium</option>
+            <option value="high" {% if priority_filter == 'high' %}selected{% endif %}>high</option>
+            <option value="urgent" {% if priority_filter == 'urgent' %}selected{% endif %}>urgent</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="mb-2 block text-sm font-medium text-slate-700">النوع</label>
+          <select name="category" class="w-full rounded-xl border border-slate-300 px-3 py-2">
+            <option value="">الكل</option>
+            {% for category in categories %}
+            <option value="{{ category.id }}" {% if category_filter == category.id|string %}selected{% endif %}>{{ category.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label class="mb-2 block text-sm font-medium text-slate-700">الجهة</label>
+          <select name="department" class="w-full rounded-xl border border-slate-300 px-3 py-2">
+            <option value="">الكل</option>
+            {% for department in departments %}
+            <option value="{{ department.id }}" {% if department_filter == department.id|string %}selected{% endif %}>{{ department.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label class="mb-2 block text-sm font-medium text-slate-700">المحافظة</label>
+          <select name="governorate" class="w-full rounded-xl border border-slate-300 px-3 py-2">
+            <option value="">الكل</option>
+            {% for governorate in governorates %}
+            <option value="{{ governorate }}" {% if governorate_filter == governorate %}selected{% endif %}>{{ governorate }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label class="mb-2 block text-sm font-medium text-slate-700">بحث</label>
+          <input type="text" name="search" value="{{ search or '' }}" class="w-full rounded-xl border border-slate-300 px-3 py-2" placeholder="عنوان أو منطقة أو نص" />
+        </div>
+
+        <div class="md:col-span-6 flex justify-end gap-3">
+          <button type="submit" class="rounded-xl bg-sky-700 px-4 py-2.5 font-semibold text-white hover:bg-sky-800">تطبيق</button>
+          <a href="/admin/complaints" class="rounded-xl border border-slate-300 bg-white px-4 py-2.5 font-semibold text-slate-700 hover:bg-slate-50">إعادة ضبط</a>
+        </div>
+      </form>
+
+      <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <table class="min-w-full text-right text-sm">
+          <thead class="bg-slate-100 text-slate-700">
+            <tr>
+              <th class="px-4 py-3">رقم البلاغ</th>
+              <th class="px-4 py-3">العنوان</th>
+              <th class="px-4 py-3">المواطن</th>
+              <th class="px-4 py-3">النوع</th>
+              <th class="px-4 py-3">المنطقة</th>
+              <th class="px-4 py-3">المحافظة</th>
+              <th class="px-4 py-3">الأولوية</th>
+              <th class="px-4 py-3">الحالة</th>
+              <th class="px-4 py-3">الجهة المختصة</th>
+              <th class="px-4 py-3">التاريخ</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for complaint in complaints %}
+            <tr class="border-t border-slate-200 hover:bg-slate-50">
+              <td class="px-4 py-3">#{{ complaint.id }}</td>
+              <td class="px-4 py-3"><a href="/admin/complaints/{{ complaint.id }}" class="font-medium text-sky-700 hover:underline">{{ complaint.title }}</a></td>
+              <td class="px-4 py-3">{{ complaint.user.name if complaint.user else 'غير معروف' }}</td>
+              <td class="px-4 py-3">{{ complaint.category.name if complaint.category else 'غير محدد' }}</td>
+              <td class="px-4 py-3">{{ complaint.area or 'غير محدد' }}</td>
+              <td class="px-4 py-3">{{ complaint.governorate or 'غير محدد' }}</td>
+              <td class="px-4 py-3"><span class="rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-800">{{ complaint.priority }}</span></td>
+              <td class="px-4 py-3"><span class="rounded-full bg-sky-100 px-2 py-1 text-xs font-semibold text-sky-800">{{ complaint.status }}</span></td>
+              <td class="px-4 py-3">{{ complaint.department.name if complaint.department else 'لم يتم التوجيه' }}</td>
+              <td class="px-4 py-3">{{ complaint.created_at.strftime('%Y-%m-%d') }}</td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="10" class="px-4 py-8 text-center text-slate-500">لا توجد بلاغات</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </body>
+</html>
