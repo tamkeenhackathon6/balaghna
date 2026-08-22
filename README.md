@@ -62,4 +62,4 @@ Demo accounts:
 
 ## Project phase
 
-This is Phase 9, with a complete citizen workflow, official admin routing, timeline/comments, interactive map, live dashboard charts, deterministic Arabic analysis, and hackathon demo documentation.
+This is the Phase 10 release candidate, with a complete citizen workflow, official admin routing, timeline/comments, interactive map, live dashboard charts, deterministic Arabic analysis, demo documentation, and final QA coverage.
