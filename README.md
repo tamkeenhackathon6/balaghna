@@ -76,7 +76,7 @@ Demo accounts:
 - Citizen: `citizen@example.com` / `password`
 - Ministry admin: `admin@molae.gov.sy` / `password`
 - Directorate demo: `local-services@molae.gov.sy` / `password`
-- Field employee demo: `emp001.services-local@molae.gov.sy` / `password`
+- Field employee demo: `emp001.local-services@molae.gov.sy` / `password`
 
 All Ministry-domain account aliases are hackathon demo identities, not operational ministry email addresses.
 

@@ -21,7 +21,7 @@ from app.models.complaint_update import ComplaintUpdate
 from app.models.department import Department
 from app.models.user import User
 from app.services.analyzer_service import analyze_complaint
-from app.services.auth_service import authenticate_user, create_user
+from app.services.auth_service import authenticate_user, create_field_employee, create_user
 from app.services.i18n_service import department_label, governorate_label, language, priority_label, status_label, translate
 from app.services.privacy_service import decrypt_national_id
 
@@ -539,11 +539,15 @@ async def directorate_employees(request: Request, user: User = Depends(require_r
 
 
 @router.post("/directorate/employees")
-async def create_field_employee(name: str = Form(...), email: str = Form(...), phone: str | None = Form(None), job_title: str | None = Form(None), user: User = Depends(require_role("directorate_admin")), db: Session = Depends(get_db)):
-    if db.scalar(select(User).where(User.email == email.strip().lower())):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exists")
-    db.add(User(name=name.strip(), email=email.strip().lower(), hashed_password=hash_password("password"), role="field_employee", department_id=user.department_id, phone=phone, job_title=job_title, is_active=True))
-    db.commit()
+async def create_field_employee_submit(request: Request, name: str = Form(...), email: str = Form(...), phone: str | None = Form(None), job_title: str | None = Form(None), password: str = Form(...), password_confirmation: str = Form(...), user: User = Depends(require_role("directorate_admin")), db: Session = Depends(get_db)):
+    if password != password_confirmation:
+        return templates.TemplateResponse(request, "directorate_employees.html", {"title": "موظفو المديرية", "user": user, "employees": [], "workload": {}, "error": "كلمتا المرور غير متطابقتين."}, status_code=status.HTTP_400_BAD_REQUEST)
+    try:
+        create_field_employee(db, user, name, email, phone, job_title, password)
+    except ValueError as error:
+        employees = db.scalars(select(User).where(User.department_id == user.department_id, User.role == "field_employee").order_by(User.name)).all()
+        workload = {employee.id: db.query(Complaint).filter(Complaint.assigned_employee_id == employee.id, Complaint.status.in_({"assigned", "in_progress"})).count() for employee in employees}
+        return templates.TemplateResponse(request, "directorate_employees.html", {"title": "موظفو المديرية", "user": user, "employees": employees, "workload": workload, "error": str(error)}, status_code=status.HTTP_400_BAD_REQUEST)
     return RedirectResponse(url="/directorate/employees", status_code=status.HTTP_303_SEE_OTHER)
 
 

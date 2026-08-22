@@ -156,3 +156,13 @@ Completed:
 - Added server-scoped directorate complaint/employee workflows and employee task start/completion with evidence upload.
 - Added encrypted National ID storage, HMAC duplicate detection, Ministry-only protected display, and National ID registration fields.
 - Verified assignment, task start, completion evidence, automatic resolution, National ID privacy, and role isolation.
+
+## Field Employee Authentication and Creation Repair
+
+Completed:
+
+- Corrected the Local Services field employee alias to `emp001.local-services@molae.gov.sy` and repaired existing seed records idempotently without database reset.
+- Reactivated the canonical seeded employee and verified the stored password uses the normal password hash.
+- Replaced the failing router-side password call with a dedicated field employee creation service that validates email uniqueness, confirms passwords, hashes passwords, forces `field_employee`, and scopes the employee to the authenticated directorate.
+- Added required employee password and confirmation inputs with controlled localized validation errors.
+- Verified seeded employee login, new employee creation/login, all role redirects, role authorization, duplicate-email handling, and password-confirmation handling.

@@ -611,9 +611,21 @@ def _ensure_workflow_accounts(db: Session) -> None:
         department = departments.get(slug)
         if not department:
             continue
+        email_slug = {"services-local": "local-services"}.get(slug, slug)
         for index in range(1, 4):
-            email = f"emp{index:03d}.{slug}@molae.gov.sy"
-            if not db.query(User).filter(User.email == email).one_or_none():
+            email = f"emp{index:03d}.{email_slug}@molae.gov.sy"
+            legacy_email = f"emp{index:03d}.{slug}@molae.gov.sy"
+            employee = db.query(User).filter(User.email == email).one_or_none()
+            legacy_employee = db.query(User).filter(User.email == legacy_email).one_or_none()
+            if legacy_employee and not employee:
+                legacy_employee.email = email
+                legacy_employee.is_active = True
+                employee = legacy_employee
+            if employee:
+                employee.role = "field_employee"
+                employee.department_id = department.id
+                employee.is_active = True
+            else:
                 db.add(User(name=f"Field Employee {index}", email=email, hashed_password=hash_password("password"), role="field_employee", department_id=department.id, job_title="Field Service Employee"))
     db.commit()
 

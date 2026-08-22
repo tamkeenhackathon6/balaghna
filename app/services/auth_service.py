@@ -4,6 +4,7 @@ from typing import Optional
 
 from passlib.context import CryptContext
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
@@ -79,3 +80,33 @@ def create_user(name: str, email: str, password: str, role: str = "citizen", nat
         return user
     finally:
         db.close()
+
+
+def create_field_employee(db: Session, directorate_admin: User, name: str, email: str, phone: str | None, job_title: str | None, password: str) -> User:
+    if directorate_admin.role != "directorate_admin" or directorate_admin.department_id is None:
+        raise ValueError("لا تملك صلاحية إنشاء موظف ميداني.")
+    normalized_name = name.strip()
+    normalized_email = email.strip().lower()
+    if not normalized_name or not normalized_email or not password:
+        raise ValueError("الاسم والبريد الإلكتروني وكلمة المرور مطلوبة.")
+    if db.scalar(select(User).where(User.email == normalized_email)):
+        raise ValueError("البريد الإلكتروني مستخدم مسبقاً.")
+
+    employee = User(
+        name=normalized_name,
+        email=normalized_email,
+        hashed_password=hash_password(password),
+        role="field_employee",
+        department_id=directorate_admin.department_id,
+        phone=phone.strip() if phone else None,
+        job_title=job_title.strip() if job_title else None,
+        is_active=True,
+    )
+    try:
+        db.add(employee)
+        db.commit()
+        db.refresh(employee)
+        return employee
+    except IntegrityError as error:
+        db.rollback()
+        raise ValueError("تعذر إنشاء الموظف. تحقق من البيانات.") from error
