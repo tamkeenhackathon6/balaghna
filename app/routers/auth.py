@@ -482,6 +482,81 @@ async def admin_complaints_list(
     )
 
 
+@router.get("/admin/map")
+async def admin_complaint_map(
+    request: Request,
+    user: User = Depends(require_role("admin")),
+    db: Session = Depends(get_db),
+):
+    categories = db.scalars(select(Category).order_by(Category.name.asc())).all()
+    departments = db.scalars(select(Department).order_by(Department.name.asc())).all()
+    governorates = db.scalars(
+        select(Complaint.governorate)
+        .where(Complaint.governorate.isnot(None))
+        .distinct()
+        .order_by(Complaint.governorate.asc())
+    ).all()
+    return templates.TemplateResponse(
+        request,
+        "admin_map.html",
+        {
+            "title": "الخريطة التفاعلية للبلاغات",
+            "user": user,
+            "slogan": settings.project_slogan,
+            "categories": categories,
+            "departments": departments,
+            "governorates": governorates,
+        },
+    )
+
+
+@router.get("/api/map/complaints")
+async def map_complaints_api(
+    user: User = Depends(require_role("admin")),
+    db: Session = Depends(get_db),
+    status: str | None = Query(default=None),
+    priority: str | None = Query(default=None),
+    category: int | None = Query(default=None),
+    department: int | None = Query(default=None),
+    governorate: str | None = Query(default=None),
+):
+    stmt = (
+        select(Complaint)
+        .options(selectinload(Complaint.category), selectinload(Complaint.department))
+        .where(Complaint.latitude.isnot(None), Complaint.longitude.isnot(None))
+        .order_by(Complaint.created_at.desc())
+    )
+
+    if status:
+        stmt = stmt.where(Complaint.status == status)
+    if priority:
+        stmt = stmt.where(Complaint.priority == priority)
+    if category is not None:
+        stmt = stmt.where(Complaint.category_id == category)
+    if department is not None:
+        stmt = stmt.where(Complaint.department_id == department)
+    if governorate:
+        stmt = stmt.where(Complaint.governorate == governorate)
+
+    complaints = db.scalars(stmt).all()
+    return [
+        {
+            "id": complaint.id,
+            "title": complaint.title,
+            "latitude": complaint.latitude,
+            "longitude": complaint.longitude,
+            "address": complaint.address,
+            "area": complaint.area,
+            "governorate": complaint.governorate,
+            "category": complaint.category.name if complaint.category else None,
+            "priority": complaint.priority,
+            "status": complaint.status,
+            "department": complaint.department.name if complaint.department else None,
+        }
+        for complaint in complaints
+    ]
+
+
 @router.get("/admin/complaints/{complaint_id}")
 async def admin_complaint_detail(
     request: Request,

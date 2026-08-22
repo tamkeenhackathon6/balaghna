@@ -43,4 +43,14 @@ Completed:
 - Added complaint update history tracking for priority and status changes.
 - Verified valid routing assignments and invalid department rejection.
 
-Next Phase: Interactive Complaint Map & Geographic Experience
+## Phase 5: Interactive Complaint Map & Geographic Experience
+
+Completed:
+
+- Added an admin-only interactive Leaflet and OpenStreetMap complaint map.
+- Added a filtered map API with category, priority, status, department, and governorate filtering.
+- Returned the complaint location, category, priority, status, and official routing information required for map popups.
+- Added map summaries for displayed complaints, urgent complaints, in-progress complaints, and complaints awaiting routing.
+- Kept the department filter restricted to the existing official participating entities.
+
+Next Phase: Complaint Timeline, Comments & Workflow Polish
