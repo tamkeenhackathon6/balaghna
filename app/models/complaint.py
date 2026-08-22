@@ -15,6 +15,7 @@ class Complaint(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     category_id: Mapped[int | None] = mapped_column(ForeignKey("categories.id"), nullable=True)
     department_id: Mapped[int | None] = mapped_column(ForeignKey("departments.id"), nullable=True)
+    assigned_employee_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
 
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
@@ -29,6 +30,11 @@ class Complaint(Base):
     routing_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
     routing_confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
     assigned_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    employee_assigned_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    work_started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    work_completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    completion_image_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    completion_note: Mapped[str | None] = mapped_column(Text, nullable=True)
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
@@ -38,8 +44,9 @@ class Complaint(Base):
         nullable=False,
     )
 
-    user: Mapped["User"] = relationship(back_populates="complaints")
+    user: Mapped["User"] = relationship(back_populates="complaints", foreign_keys=[user_id])
     category: Mapped["Category"] = relationship(back_populates="complaints")
     department: Mapped["Department"] = relationship(back_populates="complaints")
     comments: Mapped[list["Comment"]] = relationship(back_populates="complaint")
     updates: Mapped[list["ComplaintUpdate"]] = relationship(back_populates="complaint")
+    assigned_employee: Mapped["User | None"] = relationship(back_populates="assigned_tasks", foreign_keys=[assigned_employee_id])

@@ -145,3 +145,14 @@ Completed:
 - Added global language controls, role-aware navigation, current-user context, and logout to the shared authenticated header.
 - Added history-aware Back controls to login and registration with a safe landing-page fallback.
 - Verified all primary citizen and admin pages render with ministry branding and preserve English session selection after login.
+
+## Directorate and Field Execution Workflow
+
+Completed:
+
+- Added `ministry_admin`, `directorate_admin`, and `field_employee` role support while retaining citizen access.
+- Added non-destructive SQLite schema migration for department-bound users, privacy fields, employee assignment, work timestamps, and completion evidence.
+- Seeded the Ministry account, one directorate account per official entity, and field employees for major service directorates.
+- Added server-scoped directorate complaint/employee workflows and employee task start/completion with evidence upload.
+- Added encrypted National ID storage, HMAC duplicate detection, Ministry-only protected display, and National ID registration fields.
+- Verified assignment, task start, completion evidence, automatic resolution, National ID privacy, and role isolation.

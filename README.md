@@ -74,7 +74,19 @@ Then open:
 Demo accounts:
 
 - Citizen: `citizen@example.com` / `password`
-- Admin: `admin@example.com` / `password`
+- Ministry admin: `admin@molae.gov.sy` / `password`
+- Directorate demo: `local-services@molae.gov.sy` / `password`
+- Field employee demo: `emp001.services-local@molae.gov.sy` / `password`
+
+All Ministry-domain account aliases are hackathon demo identities, not operational ministry email addresses.
+
+## Operational workflow and privacy
+
+BALIGHNA uses four roles: `citizen`, `ministry_admin`, `directorate_admin`, and `field_employee`. Smart routing selects the responsible official department; the directorate then assigns a field employee. The employee starts work, uploads completion evidence, and explicitly confirms completion, which moves the complaint to `resolved`.
+
+Citizen registration requires a National ID and phone number. National IDs are encrypted for Ministry-only viewing and protected with an HMAC hash for duplicate detection. Directorate and field users never receive National ID values through their screens or scoped workflow routes.
+
+Operational routes: Ministry `/admin`, directorate `/directorate`, employee `/employee`, and citizen `/citizen`.
 
 ## Project phase
 

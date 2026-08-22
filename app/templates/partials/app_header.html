@@ -5,10 +5,16 @@
       <img class="ministry-logo" src="/static/images/horizntal-logo.png" alt="{{ 'شعار وزارة الإدارة المحلية والبيئة' if lang == 'ar' else 'Ministry of Local Administration and Environment Logo' }}" />
     </a>
     <div class="flex flex-wrap items-center gap-2 text-sm">
-      {% if user.role == 'admin' %}
+      {% if user.role == 'ministry_admin' %}
       <a href="/admin" class="rounded-lg border border-white/30 px-3 py-2 hover:bg-white/10">{{ 'لوحة التحكم' if lang == 'ar' else 'Dashboard' }}</a>
       <a href="/admin/complaints" class="rounded-lg border border-white/30 px-3 py-2 hover:bg-white/10">{{ 'البلاغات' if lang == 'ar' else 'Complaints' }}</a>
       <a href="/admin/map" class="rounded-lg border border-white/30 px-3 py-2 hover:bg-white/10">{{ 'الخريطة' if lang == 'ar' else 'Map' }}</a>
+      {% elif user.role == 'directorate_admin' %}
+      <a href="/directorate" class="rounded-lg border border-white/30 px-3 py-2 hover:bg-white/10">{{ 'لوحة المديرية' if lang == 'ar' else 'Directorate Dashboard' }}</a>
+      <a href="/directorate/complaints" class="rounded-lg border border-white/30 px-3 py-2 hover:bg-white/10">{{ 'البلاغات' if lang == 'ar' else 'Complaints' }}</a>
+      <a href="/directorate/employees" class="rounded-lg border border-white/30 px-3 py-2 hover:bg-white/10">{{ 'الموظفون' if lang == 'ar' else 'Employees' }}</a>
+      {% elif user.role == 'field_employee' %}
+      <a href="/employee" class="rounded-lg border border-white/30 px-3 py-2 hover:bg-white/10">{{ 'مهامي' if lang == 'ar' else 'My Tasks' }}</a>
       {% else %}
       <a href="/citizen" class="rounded-lg border border-white/30 px-3 py-2 hover:bg-white/10">{{ 'الرئيسية' if lang == 'ar' else 'Home' }}</a>
       <a href="/citizen/complaints" class="rounded-lg border border-white/30 px-3 py-2 hover:bg-white/10">{{ 'بلاغاتي' if lang == 'ar' else 'My Complaints' }}</a>

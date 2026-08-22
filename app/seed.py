@@ -519,6 +519,7 @@ def seed_data() -> None:
     db: Session = SessionLocal()
     try:
         if db.query(Category).count() > 0 or db.query(Department).count() > 0:
+            _ensure_workflow_accounts(db)
             return
 
         departments = [Department(**item) for item in OFFICIAL_DEPARTMENTS]
@@ -576,8 +577,45 @@ def seed_data() -> None:
 
         db.add_all(complaint_items)
         db.commit()
+        _ensure_workflow_accounts(db)
     finally:
         db.close()
+
+
+def _ensure_workflow_accounts(db: Session) -> None:
+    departments = {department.slug: department for department in db.query(Department).all()}
+    existing_ministry = db.query(User).filter(User.email == "admin@molae.gov.sy").one_or_none()
+    legacy_admin = db.query(User).filter(User.email == "admin@example.com").one_or_none()
+    if legacy_admin and not existing_ministry:
+        legacy_admin.email = "admin@molae.gov.sy"
+        legacy_admin.name = "Ministry Demo Administrator"
+        legacy_admin.role = "ministry_admin"
+        existing_ministry = legacy_admin
+    if not existing_ministry:
+        db.add(User(name="Ministry Demo Administrator", email="admin@molae.gov.sy", hashed_password=hash_password("password"), role="ministry_admin"))
+
+    aliases = {
+        "services-local": "local-services", "local-councils-admin": "local-councils", "planning-local-development": "local-development",
+        "urban-planning": "urban-planning", "technical-affairs": "technical-affairs", "financial-affairs": "financial-affairs",
+        "inspection-audit": "inspection", "governorates": "governorates", "municipal-local-units": "municipalities",
+    }
+    for slug, alias in aliases.items():
+        department = departments.get(slug)
+        if not department:
+            continue
+        email = f"{alias}@molae.gov.sy"
+        if not db.query(User).filter(User.email == email).one_or_none():
+            db.add(User(name=f"{department.name} Administrator", email=email, hashed_password=hash_password("password"), role="directorate_admin", department_id=department.id))
+
+    for slug in ("services-local", "technical-affairs", "urban-planning"):
+        department = departments.get(slug)
+        if not department:
+            continue
+        for index in range(1, 4):
+            email = f"emp{index:03d}.{slug}@molae.gov.sy"
+            if not db.query(User).filter(User.email == email).one_or_none():
+                db.add(User(name=f"Field Employee {index}", email=email, hashed_password=hash_password("password"), role="field_employee", department_id=department.id, job_title="Field Service Employee"))
+    db.commit()
 
 
 if __name__ == "__main__":

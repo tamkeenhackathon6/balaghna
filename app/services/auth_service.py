@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
 from app.models.user import User
+from app.services.privacy_service import encrypt_national_id, national_id_hash
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -35,12 +36,14 @@ def authenticate_user(email: str, password: str) -> Optional[User]:
     user = get_user_by_email(email)
     if not user:
         return None
+    if not user.is_active:
+        return None
     if not verify_password(password, user.hashed_password):
         return None
     return user
 
 
-def create_user(name: str, email: str, password: str, role: str = "citizen") -> User:
+def create_user(name: str, email: str, password: str, role: str = "citizen", national_id: str | None = None, phone: str | None = None) -> User:
     normalized_name = name.strip()
     normalized_email = email.strip().lower()
 
@@ -49,12 +52,23 @@ def create_user(name: str, email: str, password: str, role: str = "citizen") -> 
 
     if get_user_by_email(normalized_email):
         raise ValueError("هذا البريد الإلكتروني مستخدم بالفعل.")
+    if role == "citizen" and not national_id:
+        raise ValueError("الرقم الوطني مطلوب.")
+
+    national_hash = national_id_hash(national_id) if national_id else None
+    if national_hash:
+        with SessionLocal() as lookup_db:
+            if lookup_db.execute(select(User).where(User.national_id_hash == national_hash)).scalar_one_or_none():
+                raise ValueError("يوجد حساب مسجل مسبقاً بهذا الرقم الوطني.")
 
     user = User(
         name=normalized_name,
         email=normalized_email,
         hashed_password=hash_password(password),
-        role=role if role in {"citizen", "admin"} else "citizen",
+        role="citizen",
+        national_id_hash=national_hash,
+        national_id_encrypted=encrypt_national_id(national_id) if national_id else None,
+        phone=phone.strip() if phone else None,
     )
 
     db: Session = SessionLocal()

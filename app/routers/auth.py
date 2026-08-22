@@ -23,6 +23,7 @@ from app.models.user import User
 from app.services.analyzer_service import analyze_complaint
 from app.services.auth_service import authenticate_user, create_user
 from app.services.i18n_service import department_label, governorate_label, language, priority_label, status_label, translate
+from app.services.privacy_service import decrypt_national_id
 
 router = APIRouter(prefix="", tags=["auth"])
 templates = Jinja2Templates(directory=str(BASE_DIR / "app" / "templates"))
@@ -189,7 +190,7 @@ async def login_submit(
     request.session["user_role"] = user.role
     request.session["user_name"] = user.name
 
-    redirect_path = "/admin" if user.role == "admin" else "/citizen"
+    redirect_path = {"ministry_admin": "/admin", "directorate_admin": "/directorate", "field_employee": "/employee", "citizen": "/citizen"}.get(user.role, "/citizen")
     return RedirectResponse(url=redirect_path, status_code=status.HTTP_303_SEE_OTHER)
 
 
@@ -207,10 +208,12 @@ async def register_submit(
     request: Request,
     name: str = Form(...),
     email: str = Form(...),
+    national_id: str = Form(...),
+    phone: str = Form(...),
     password: str = Form(...),
     password_confirm: str = Form(...),
 ):
-    if not name.strip() or not email.strip() or not password:
+    if not name.strip() or not email.strip() or not password or not national_id.strip() or not phone.strip():
         return templates.TemplateResponse(
             request,
             "auth_register.html",
@@ -235,7 +238,7 @@ async def register_submit(
         )
 
     try:
-        user = create_user(name=name, email=email, password=password, role="citizen")
+        user = create_user(name=name, email=email, password=password, national_id=national_id, phone=phone)
     except ValueError as exc:
         return templates.TemplateResponse(
             request,
@@ -470,7 +473,7 @@ async def add_complaint_comment(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Complaint not found")
     if user.role == "citizen" and complaint.user_id != user.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Complaint not found")
-    if user.role not in {"citizen", "admin"}:
+    if user.role not in {"citizen", "ministry_admin", "directorate_admin", "field_employee"}:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
 
     comment_body = body.strip()
@@ -479,14 +482,130 @@ async def add_complaint_comment(
 
     db.add(Comment(complaint_id=complaint.id, user_id=user.id, body=comment_body))
     db.commit()
-    destination = f"/admin/complaints/{complaint.id}" if user.role == "admin" else f"/citizen/complaints/{complaint.id}"
+    destination = f"/admin/complaints/{complaint.id}" if user.role == "ministry_admin" else f"/citizen/complaints/{complaint.id}"
     return RedirectResponse(url=destination, status_code=status.HTTP_303_SEE_OTHER)
+
+
+async def upload_completion_image(file: UploadFile | None) -> str:
+    if file is None or not file.filename:
+        raise ValueError("صورة إثبات الإنجاز مطلوبة.")
+    suffix = Path(file.filename).suffix.lower()
+    if suffix not in {".jpg", ".jpeg", ".png", ".webp"}:
+        raise ValueError("تنسيق الصورة غير مسموح.")
+    content = await file.read()
+    if len(content) > 5 * 1024 * 1024:
+        raise ValueError("حجم الصورة يجب أن يكون أقل من 5 MB.")
+    directory = BASE_DIR / "app" / "static" / "uploads" / "completions"
+    directory.mkdir(parents=True, exist_ok=True)
+    filename = f"{uuid4().hex}{suffix}"
+    (directory / filename).write_bytes(content)
+    return f"/uploads/completions/{filename}"
+
+
+@router.get("/directorate")
+async def directorate_dashboard(request: Request, user: User = Depends(require_role("directorate_admin")), db: Session = Depends(get_db)):
+    complaints = db.scalars(select(Complaint).where(Complaint.department_id == user.department_id)).all()
+    employees = db.scalars(select(User).where(User.department_id == user.department_id, User.role == "field_employee", User.is_active.is_(True))).all()
+    return templates.TemplateResponse(request, "directorate_dashboard.html", {"title": "لوحة المديرية", "user": user, "complaints": complaints, "employees": employees})
+
+
+@router.get("/directorate/complaints")
+async def directorate_complaints(request: Request, user: User = Depends(require_role("directorate_admin")), db: Session = Depends(get_db)):
+    complaints = db.scalars(select(Complaint).options(selectinload(Complaint.category), selectinload(Complaint.assigned_employee)).where(Complaint.department_id == user.department_id).order_by(Complaint.created_at.desc())).all()
+    employees = db.scalars(select(User).where(User.department_id == user.department_id, User.role == "field_employee", User.is_active.is_(True)).order_by(User.name)).all()
+    return templates.TemplateResponse(request, "directorate_complaints.html", {"title": "بلاغات المديرية", "user": user, "complaints": complaints, "employees": employees})
+
+
+@router.post("/directorate/complaints/{complaint_id}/assign")
+async def assign_field_employee(complaint_id: int, employee_id: int = Form(...), user: User = Depends(require_role("directorate_admin")), db: Session = Depends(get_db)):
+    complaint = db.scalar(select(Complaint).where(Complaint.id == complaint_id, Complaint.department_id == user.department_id))
+    employee = db.scalar(select(User).where(User.id == employee_id, User.department_id == user.department_id, User.role == "field_employee", User.is_active.is_(True)))
+    if not complaint or not employee:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assignment target not found")
+    complaint.assigned_employee_id = employee.id
+    complaint.employee_assigned_at = datetime.now(timezone.utc)
+    if complaint.status == "new":
+        complaint.status = "assigned"
+    add_complaint_history(db, complaint, user, f"تم تكليف الموظف {employee.name} بتنفيذ البلاغ.")
+    db.commit()
+    return RedirectResponse(url="/directorate/complaints", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@router.get("/directorate/employees")
+async def directorate_employees(request: Request, user: User = Depends(require_role("directorate_admin")), db: Session = Depends(get_db)):
+    employees = db.scalars(select(User).where(User.department_id == user.department_id, User.role == "field_employee").order_by(User.name)).all()
+    workload = {employee.id: db.query(Complaint).filter(Complaint.assigned_employee_id == employee.id, Complaint.status.in_({"assigned", "in_progress"})).count() for employee in employees}
+    return templates.TemplateResponse(request, "directorate_employees.html", {"title": "موظفو المديرية", "user": user, "employees": employees, "workload": workload})
+
+
+@router.post("/directorate/employees")
+async def create_field_employee(name: str = Form(...), email: str = Form(...), phone: str | None = Form(None), job_title: str | None = Form(None), user: User = Depends(require_role("directorate_admin")), db: Session = Depends(get_db)):
+    if db.scalar(select(User).where(User.email == email.strip().lower())):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exists")
+    db.add(User(name=name.strip(), email=email.strip().lower(), hashed_password=hash_password("password"), role="field_employee", department_id=user.department_id, phone=phone, job_title=job_title, is_active=True))
+    db.commit()
+    return RedirectResponse(url="/directorate/employees", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@router.post("/directorate/employees/{employee_id}/deactivate")
+async def deactivate_field_employee(employee_id: int, user: User = Depends(require_role("directorate_admin")), db: Session = Depends(get_db)):
+    employee = db.scalar(select(User).where(User.id == employee_id, User.department_id == user.department_id, User.role == "field_employee"))
+    if not employee:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found")
+    employee.is_active = False
+    db.commit()
+    return RedirectResponse(url="/directorate/employees", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@router.get("/employee")
+async def employee_dashboard(request: Request, user: User = Depends(require_role("field_employee")), db: Session = Depends(get_db)):
+    tasks = db.scalars(select(Complaint).options(selectinload(Complaint.department)).where(Complaint.assigned_employee_id == user.id).order_by(Complaint.created_at.desc())).all()
+    return templates.TemplateResponse(request, "employee_dashboard.html", {"title": "مهامي", "user": user, "tasks": tasks})
+
+
+@router.get("/employee/tasks/{complaint_id}")
+async def employee_task_detail(request: Request, complaint_id: int, user: User = Depends(require_role("field_employee")), db: Session = Depends(get_db)):
+    complaint = db.scalar(select(Complaint).options(selectinload(Complaint.category), selectinload(Complaint.department)).where(Complaint.id == complaint_id, Complaint.assigned_employee_id == user.id))
+    if not complaint:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+    return templates.TemplateResponse(request, "employee_task_detail.html", {"title": "تفاصيل المهمة", "user": user, "complaint": complaint})
+
+
+@router.post("/employee/tasks/{complaint_id}/start")
+async def start_employee_task(complaint_id: int, user: User = Depends(require_role("field_employee")), db: Session = Depends(get_db)):
+    complaint = db.scalar(select(Complaint).where(Complaint.id == complaint_id, Complaint.assigned_employee_id == user.id))
+    if not complaint:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+    if complaint.work_started_at is None:
+        complaint.work_started_at = datetime.now(timezone.utc)
+        complaint.status = "in_progress"
+        add_complaint_history(db, complaint, user, "بدأ الموظف تنفيذ المهمة ميدانياً.")
+        db.commit()
+    return RedirectResponse(url=f"/employee/tasks/{complaint_id}", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@router.post("/employee/tasks/{complaint_id}/complete")
+async def complete_employee_task(complaint_id: int, completion_note: str = Form(""), image: UploadFile = File(...), user: User = Depends(require_role("field_employee")), db: Session = Depends(get_db)):
+    complaint = db.scalar(select(Complaint).where(Complaint.id == complaint_id, Complaint.assigned_employee_id == user.id))
+    if not complaint:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+    try:
+        complaint.completion_image_path = await upload_completion_image(image)
+    except ValueError as error:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(error)) from error
+    complaint.completion_note = completion_note.strip() or None
+    complaint.work_completed_at = datetime.now(timezone.utc)
+    complaint.resolved_at = complaint.work_completed_at
+    complaint.status = "resolved"
+    add_complaint_history(db, complaint, user, "تم إنجاز المهمة ميدانياً وإرفاق صورة إثبات الإنجاز.")
+    db.commit()
+    return RedirectResponse(url=f"/employee/tasks/{complaint_id}", status_code=status.HTTP_303_SEE_OTHER)
 
 
 @router.get("/admin")
 async def admin_dashboard(
     request: Request,
-    user: User = Depends(require_role("admin")),
+    user: User = Depends(require_role("ministry_admin")),
     db: Session = Depends(get_db),
 ):
     complaints = db.scalars(
@@ -543,7 +662,7 @@ async def admin_dashboard(
 @router.get("/admin/complaints")
 async def admin_complaints_list(
     request: Request,
-    user: User = Depends(require_role("admin")),
+    user: User = Depends(require_role("ministry_admin")),
     db: Session = Depends(get_db),
     status: str | None = Query(default=None),
     priority: str | None = Query(default=None),
@@ -609,7 +728,7 @@ async def admin_complaints_list(
 @router.get("/admin/map")
 async def admin_complaint_map(
     request: Request,
-    user: User = Depends(require_role("admin")),
+    user: User = Depends(require_role("ministry_admin")),
     db: Session = Depends(get_db),
 ):
     categories = db.scalars(select(Category).order_by(Category.name.asc())).all()
@@ -632,7 +751,7 @@ async def admin_complaint_map(
 @router.get("/api/map/complaints")
 async def map_complaints_api(
     request: Request,
-    user: User = Depends(require_role("admin")),
+    user: User = Depends(require_role("ministry_admin")),
     db: Session = Depends(get_db),
     status: str | None = Query(default=None),
     priority: str | None = Query(default=None),
@@ -685,7 +804,7 @@ async def map_complaints_api(
 async def admin_complaint_detail(
     request: Request,
     complaint_id: int,
-    user: User = Depends(require_role("admin")),
+    user: User = Depends(require_role("ministry_admin")),
     db: Session = Depends(get_db),
 ):
     complaint = db.scalar(
@@ -709,6 +828,7 @@ async def admin_complaint_detail(
             "complaint": complaint,
             "departments": departments,
             "status_labels": STATUS_LABELS,
+            "citizen_national_id": decrypt_national_id(complaint.user.national_id_encrypted),
         },
     )
 
@@ -722,7 +842,7 @@ async def admin_complaint_update(
     status_value: str = Form(default="new"),
     routing_reason: str = Form(default=""),
     admin_note: str = Form(default=""),
-    user: User = Depends(require_role("admin")),
+    user: User = Depends(require_role("ministry_admin")),
     db: Session = Depends(get_db),
 ):
     complaint = db.get(Complaint, complaint_id)

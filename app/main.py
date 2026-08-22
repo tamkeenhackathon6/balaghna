@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from fastapi import FastAPI, Request
+from sqlalchemy import text
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -40,6 +41,21 @@ async def health_check():
 @app.on_event("startup")
 def startup_event():
     Base.metadata.create_all(bind=engine)
+    with engine.begin() as connection:
+        existing_user_columns = {row[1] for row in connection.execute(text("PRAGMA table_info(users)"))}
+        existing_complaint_columns = {row[1] for row in connection.execute(text("PRAGMA table_info(complaints)"))}
+        for name, definition in {
+            "department_id": "INTEGER", "national_id_hash": "VARCHAR(128)", "national_id_encrypted": "VARCHAR(512)",
+            "phone": "VARCHAR(50)", "job_title": "VARCHAR(150)", "is_active": "BOOLEAN NOT NULL DEFAULT 1",
+        }.items():
+            if name not in existing_user_columns:
+                connection.execute(text(f"ALTER TABLE users ADD COLUMN {name} {definition}"))
+        for name, definition in {
+            "assigned_employee_id": "INTEGER", "employee_assigned_at": "DATETIME", "work_started_at": "DATETIME",
+            "work_completed_at": "DATETIME", "completion_image_path": "VARCHAR(500)", "completion_note": "TEXT",
+        }.items():
+            if name not in existing_complaint_columns:
+                connection.execute(text(f"ALTER TABLE complaints ADD COLUMN {name} {definition}"))
     try:
         seed.seed_data()
     except Exception:

@@ -256,3 +256,11 @@ The application supports Arabic as the default RTL interface and English as LTR.
 All pages use the shared ministry visual identity: forest navigation, emerald actions, ivory application background, gold accents, and the supplied ministry logo assets. Localized values are presentation-only; API, filter, and database values remain `new`, `assigned`, `in_progress`, `resolved`, `closed`, `low`, `medium`, `high`, and `urgent`.
 
 The authenticated application uses a shared role-aware ministry header for citizen and admin workflows. Every ministry logo is an accessible link to `/`; returning to the landing page preserves the authenticated session. Authentication pages provide a history-aware back control with a landing-page fallback.
+
+## 16. Operational execution workflow
+
+Roles are `citizen`, `ministry_admin`, `directorate_admin`, and `field_employee`. Directorate and employee records reuse the User model and must be bound to exactly one official department. Complaint `department_id` remains the responsible government entity; `assigned_employee_id` is the execution assignment.
+
+Field employees can access only their assigned tasks. Completion requires an explicit confirmation plus a valid image upload; the system then stores completion evidence, records work completion time, and sets the stable database status to `resolved`.
+
+Citizen National IDs are stored as an encrypted value plus an HMAC hash for duplicate detection. Only the Ministry-admin complaint detail route decrypts and renders the value. Directorate and field scopes are enforced server-side and never receive National ID fields.
