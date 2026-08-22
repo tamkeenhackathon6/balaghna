@@ -146,6 +146,9 @@
           return;
         }
 
+        const analyzeButton = document.getElementById('analyze-complaint');
+        analyzeButton.disabled = true;
+        analyzeButton.textContent = '{{ "جاري تحليل البلاغ..." if current_language(request) == "ar" else "Analyzing complaint..." }}';
         const response = await fetch('/api/complaints/analyze', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -155,6 +158,8 @@
             governorate: document.getElementById('governorate').value
           })
         });
+        analyzeButton.disabled = false;
+        analyzeButton.textContent = '{{ "تحليل البلاغ" if current_language(request) == "ar" else "Analyze Complaint" }}';
         if (!response.ok) {
           result.textContent = 'تعذر تحليل البلاغ حالياً.';
           result.classList.remove('hidden');
@@ -162,7 +167,8 @@
         }
 
         const suggestion = await response.json();
-        result.innerHTML = `<div class="space-y-1"><div><strong>نوع المشكلة:</strong> ${suggestion.category}</div><div><strong>الأولوية:</strong> ${suggestion.priority}</div><div><strong>الجهة المختصة:</strong> ${suggestion.department}</div><div><strong>سبب التوجيه:</strong> ${suggestion.routing_reason}</div></div>`;
+        const priorityLabels = {{ {'low': priority_label('low', request), 'medium': priority_label('medium', request), 'high': priority_label('high', request), 'urgent': priority_label('urgent', request)}|tojson }};
+        result.innerHTML = `<div class="space-y-1"><div><strong>{{ 'نوع المشكلة:' if current_language(request) == 'ar' else 'Complaint Type:' }}</strong> ${suggestion.category}</div><div><strong>{{ 'الأولوية:' if current_language(request) == 'ar' else 'Priority:' }}</strong> ${priorityLabels[suggestion.priority]}</div><div><strong>{{ 'الجهة المختصة:' if current_language(request) == 'ar' else 'Responsible Entity:' }}</strong> ${suggestion.department}</div><div><strong>{{ 'سبب التوجيه:' if current_language(request) == 'ar' else 'Routing Reason:' }}</strong> ${suggestion.routing_reason}</div></div>`;
         result.classList.remove('hidden');
         acceptContainer.classList.remove('hidden');
         acceptContainer.classList.add('flex');

@@ -166,3 +166,14 @@ Completed:
 - Replaced the failing router-side password call with a dedicated field employee creation service that validates email uniqueness, confirms passwords, hashes passwords, forces `field_employee`, and scopes the employee to the authenticated directorate.
 - Added required employee password and confirmation inputs with controlled localized validation errors.
 - Verified seeded employee login, new employee creation/login, all role redirects, role authorization, duplicate-email handling, and password-confirmation handling.
+
+## Local Qwen/Ollama Hybrid Complaint Analysis
+
+Completed:
+
+- Added configurable Qwen3 4B local Ollama integration with a strict Arabic JSON-only prompt and low-temperature requests.
+- Kept the deterministic Arabic analyzer as the offline and invalid-output fallback.
+- Added strict backend validation for existing categories, official departments, allowed priorities, confidence, and routing reasons.
+- Added stable `source` metadata (`ai` or `rule_based`) without exposing technical backend details to citizens.
+- Added Ministry-only AI health information and localized citizen analysis loading/result presentation.
+- Verified all required routing examples, invalid AI output guards, and Ollama-offline API fallback.

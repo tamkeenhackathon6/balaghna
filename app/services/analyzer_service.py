@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import re
 from collections.abc import Iterable
+from typing import Any
+
+from app.services.ollama_service import OllamaUnavailable, analyze_with_ollama
 
 OFFICIAL_DEPARTMENTS = {
     "مديرية الخدمات المحلية": 1,
@@ -66,6 +69,16 @@ def _matches(text: str, keywords: Iterable[str]) -> list[str]:
 
 
 def analyze_complaint(text: str, category: str | None = None, area: str | None = None, governorate: str | None = None) -> dict:
+    try:
+        ai_result = _validate_ai_result(analyze_with_ollama(text, area, governorate))
+        if ai_result:
+            return ai_result
+    except OllamaUnavailable:
+        pass
+    return analyze_with_rules(text, category, area, governorate)
+
+
+def analyze_with_rules(text: str, category: str | None = None, area: str | None = None, governorate: str | None = None) -> dict:
     normalized = normalize_arabic(" ".join(part for part in (text, area or "", governorate or "") if part))
     scored = []
     for precedence, (department, category_name, keywords, reason) in enumerate(RULES):
@@ -92,6 +105,31 @@ def analyze_complaint(text: str, category: str | None = None, area: str | None =
         "confidence": confidence,
         "matched_keywords": matched_keywords,
         "routing_reason": reason,
+        "source": "rule_based",
+    }
+
+
+def _validate_ai_result(result: dict[str, Any]) -> dict[str, Any] | None:
+    category = str(result.get("category", "")).strip()
+    department = str(result.get("department", "")).strip()
+    priority = str(result.get("priority", "")).strip().lower()
+    reason = str(result.get("routing_reason", "")).strip()
+    try:
+        confidence = float(result.get("confidence"))
+    except (TypeError, ValueError):
+        return None
+    if category not in CATEGORY_IDS or department not in OFFICIAL_DEPARTMENTS or priority not in {"low", "medium", "high", "urgent"} or not reason:
+        return None
+    return {
+        "category": category,
+        "category_id": CATEGORY_IDS[category],
+        "department": department,
+        "department_id": OFFICIAL_DEPARTMENTS[department],
+        "priority": priority,
+        "confidence": max(0.0, min(1.0, confidence)),
+        "matched_keywords": [],
+        "routing_reason": reason,
+        "source": "ai",
     }
 
 

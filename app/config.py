@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     app_env: str = "development"
     database_url: str = f"sqlite:///{DATA_DIR / 'app.db'}"
     secret_key: str = "change-me-in-production"
+    ollama_base_url: str = "http://127.0.0.1:11434"
+    ollama_model: str = "qwen3:4b"
+    ollama_timeout: int = 20
+    ai_analyzer_enabled: bool = True
 
     model_config = SettingsConfigDict(
         env_file=BASE_DIR / ".env",

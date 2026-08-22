@@ -21,6 +21,7 @@ from app.models.complaint_update import ComplaintUpdate
 from app.models.department import Department
 from app.models.user import User
 from app.services.analyzer_service import analyze_complaint
+from app.services.ollama_service import ollama_health
 from app.services.auth_service import authenticate_user, create_field_employee, create_user
 from app.services.i18n_service import department_label, governorate_label, language, priority_label, status_label, translate
 from app.services.privacy_service import decrypt_national_id
@@ -289,6 +290,11 @@ async def analyze_complaint_api(
     user: User = Depends(require_role("citizen")),
 ):
     return analyze_complaint(payload.text, area=payload.area, governorate=payload.governorate)
+
+
+@router.get("/api/ai/health")
+async def ai_health(user: User = Depends(require_role("ministry_admin"))):
+    return {"enabled": get_settings().ai_analyzer_enabled, "ollama": ollama_health(), "model": get_settings().ollama_model, "fallback": True}
 
 
 @router.post("/citizen/complaints/new")

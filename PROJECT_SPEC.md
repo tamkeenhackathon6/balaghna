@@ -264,3 +264,9 @@ Roles are `citizen`, `ministry_admin`, `directorate_admin`, and `field_employee`
 Field employees can access only their assigned tasks. Completion requires an explicit confirmation plus a valid image upload; the system then stores completion evidence, records work completion time, and sets the stable database status to `resolved`.
 
 Citizen National IDs are stored as an encrypted value plus an HMAC hash for duplicate detection. Only the Ministry-admin complaint detail route decrypts and renders the value. Directorate and field scopes are enforced server-side and never receive National ID fields.
+
+## 17. Hybrid local AI analysis
+
+Complaint analysis uses a hybrid flow: Qwen3 4B via local Ollama is asked for strict JSON containing category, priority, official department, routing reason, and confidence. The backend validates every field against existing categories, permitted priorities, and the official entity allowlist. If Ollama is disabled, offline, times out, produces malformed JSON, or fails validation, the existing deterministic Arabic rule-based analyzer provides the same stable result format with `source = rule_based`.
+
+Only complaint text and optional area/governorate are processed by the local model. National IDs, passwords, tokens, and citizen profile data are never included in the model request.

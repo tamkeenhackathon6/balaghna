@@ -86,6 +86,19 @@ BALIGHNA uses four roles: `citizen`, `ministry_admin`, `directorate_admin`, and 
 
 Citizen registration requires a National ID and phone number. National IDs are encrypted for Ministry-only viewing and protected with an HMAC hash for duplicate detection. Directorate and field users never receive National ID values through their screens or scoped workflow routes.
 
+## Local AI setup
+
+BALIGHNA can use Qwen3 4B through a local Ollama server for Arabic and Syrian-colloquial complaint suggestions. Install Ollama, then run:
+
+```bash
+ollama pull qwen3:4b
+ollama serve
+```
+
+Configure `OLLAMA_BASE_URL`, `OLLAMA_MODEL`, `OLLAMA_TIMEOUT`, and `AI_ANALYZER_ENABLED` in `.env`. The application sends only complaint text plus optional area/governorate to local Ollama. It never sends National IDs, passwords, session tokens, or citizen profile data.
+
+If Ollama is unavailable, times out, returns malformed JSON, or suggests an invalid category, priority, or official entity, BALIGHNA automatically uses its deterministic local rule-based analyzer.
+
 Operational routes: Ministry `/admin`, directorate `/directorate`, employee `/employee`, and citizen `/citizen`.
 
 ## Project phase
