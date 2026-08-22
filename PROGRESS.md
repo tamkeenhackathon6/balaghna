@@ -53,4 +53,14 @@ Completed:
 - Added map summaries for displayed complaints, urgent complaints, in-progress complaints, and complaints awaiting routing.
 - Kept the department filter restricted to the existing official participating entities.
 
-Next Phase: Complaint Timeline, Comments & Workflow Polish
+## Phase 6: Timeline, Comments & Workflow
+
+Completed:
+
+- Added complaint timeline entries for creation, classification, official routing, re-routing, priority changes, status changes, resolution, closure, and administrative notes.
+- Prevented unchanged admin submissions from duplicating routing history.
+- Added role-aware comments: citizens may comment only on their own complaints, while admins may comment on all complaints.
+- Added Arabic workflow status labels and citizen visibility for the current responsible entity, routing reason, last update, and status.
+- Verified routing timeline integrity, comment access control, and citizen detail rendering.
+
+Next Phase: Smart Complaint Classification & Official Entity Routing

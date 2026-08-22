@@ -35,13 +35,33 @@
         <div class="lg:col-span-2 space-y-6">
           <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div class="flex flex-wrap gap-3">
-              <span class="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800">{{ complaint.status }}</span>
+              <span class="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800">{{ status_labels.get(complaint.status, complaint.status) }}</span>
               <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">{{ complaint.priority }}</span>
               {% if complaint.category %}
               <span class="rounded-full bg-slate-200 px-3 py-1 text-xs font-semibold text-slate-700">{{ complaint.category.name }}</span>
               {% endif %}
             </div>
             <p class="mt-6 whitespace-pre-line text-slate-700">{{ complaint.description }}</p>
+          </div>
+
+          <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 class="mb-4 text-xl font-bold">التعليقات</h2>
+            <div class="space-y-3">
+              {% for comment in complaint.comments %}
+              <div class="rounded-xl bg-slate-50 p-4 text-sm text-slate-700">
+                <div class="font-semibold text-slate-900">{{ comment.user.name if comment.user else 'مستخدم' }}</div>
+                <p class="mt-1 whitespace-pre-line">{{ comment.body }}</p>
+                <div class="mt-2 text-xs text-slate-500">{{ comment.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+              </div>
+              {% else %}
+              <p class="text-sm text-slate-500">لا توجد تعليقات بعد.</p>
+              {% endfor %}
+            </div>
+            <form method="post" action="/complaints/{{ complaint.id }}/comments" class="mt-5 space-y-3">
+              <label for="comment-body" class="block text-sm font-medium text-slate-700">إضافة تعليق</label>
+              <textarea id="comment-body" name="body" rows="3" required class="w-full rounded-xl border border-slate-300 px-3 py-2.5" placeholder="اكتب تعليقك أو أي معلومة إضافية"></textarea>
+              <div class="flex justify-end"><button type="submit" class="rounded-xl bg-sky-700 px-4 py-2.5 font-semibold text-white hover:bg-sky-800">إرسال التعليق</button></div>
+            </form>
           </div>
 
           {% if complaint.image_path %}
@@ -56,7 +76,10 @@
           <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 class="mb-3 text-lg font-bold">معلومات البلاغ</h2>
             <dl class="space-y-3 text-sm text-slate-700">
-              <div><dt class="font-semibold text-slate-900">الجهة المسؤولة</dt><dd>{% if complaint.department %}{{ complaint.department.name }}{% else %}بانتظار تحديد الجهة المختصة{% endif %}</dd></div>
+              <div><dt class="font-semibold text-slate-900">الجهة المسؤولة حالياً</dt><dd>{% if complaint.department %}{{ complaint.department.name }}{% else %}بانتظار تحديد الجهة المختصة{% endif %}</dd></div>
+              <div><dt class="font-semibold text-slate-900">سبب التوجيه</dt><dd>{{ complaint.routing_reason or 'بانتظار تحديد سبب التوجيه' }}</dd></div>
+              <div><dt class="font-semibold text-slate-900">الحالة</dt><dd>{{ status_labels.get(complaint.status, complaint.status) }}</dd></div>
+              <div><dt class="font-semibold text-slate-900">آخر تحديث</dt><dd>{% if complaint.updates %}{{ complaint.updates[0].created_at.strftime('%Y-%m-%d %H:%M') }}{% else %}{{ complaint.created_at.strftime('%Y-%m-%d %H:%M') }}{% endif %}</dd></div>
               <div><dt class="font-semibold text-slate-900">المحافظة</dt><dd>{{ complaint.governorate or 'غير محدد' }}</dd></div>
               <div><dt class="font-semibold text-slate-900">العنوان</dt><dd>{{ complaint.address or 'غير محدد' }}</dd></div>
               <div><dt class="font-semibold text-slate-900">المنطقة</dt><dd>{{ complaint.area or 'غير محدد' }}</dd></div>

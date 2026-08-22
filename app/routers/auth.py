@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.config import BASE_DIR, get_settings
 from app.database import get_db
 from app.models.category import Category
+from app.models.comment import Comment
 from app.models.complaint import Complaint
 from app.models.complaint_update import ComplaintUpdate
 from app.models.department import Department
@@ -24,6 +25,13 @@ templates = Jinja2Templates(directory=str(BASE_DIR / "app" / "templates"))
 settings = get_settings()
 ALLOWED_PRIORITIES = {"low", "medium", "high", "urgent"}
 ALLOWED_STATUSES = {"new", "assigned", "in_progress", "resolved", "closed"}
+STATUS_LABELS = {
+    "new": "جديد",
+    "assigned": "تم الإسناد",
+    "in_progress": "قيد المعالجة",
+    "resolved": "تم الحل",
+    "closed": "مغلق",
+}
 
 
 def get_current_user(request: Request, db: Session = Depends(get_db)) -> User | None:
@@ -113,6 +121,15 @@ def add_complaint_history(db: Session, complaint: Complaint, user: User, note: s
             new_status=complaint.status,
             note=note,
         )
+    )
+
+
+def complaint_detail_options():
+    return (
+        selectinload(Complaint.category),
+        selectinload(Complaint.department),
+        selectinload(Complaint.updates),
+        selectinload(Complaint.comments).selectinload(Comment.user),
     )
 
 
@@ -336,6 +353,15 @@ async def complaint_form_submit(
             note="تم إنشاء البلاغ",
         )
     )
+    db.add(
+        ComplaintUpdate(
+            complaint_id=complaint.id,
+            user_id=user.id,
+            old_status="new",
+            new_status="new",
+            note="تم تصنيف البلاغ",
+        )
+    )
     db.commit()
     db.refresh(complaint)
     return RedirectResponse(url=f"/citizen/complaints/{complaint.id}", status_code=status.HTTP_303_SEE_OTHER)
@@ -350,13 +376,14 @@ async def complaint_detail(
 ):
     complaint = db.scalar(
         select(Complaint)
-        .options(selectinload(Complaint.category), selectinload(Complaint.department), selectinload(Complaint.updates))
+        .options(*complaint_detail_options())
         .where(Complaint.id == complaint_id, Complaint.user_id == user.id)
     )
     if complaint is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Complaint not found")
 
     complaint.updates = sorted(complaint.updates, key=lambda item: item.created_at, reverse=True)
+    complaint.comments = sorted(complaint.comments, key=lambda item: item.created_at)
 
     return templates.TemplateResponse(
         request,
@@ -366,8 +393,35 @@ async def complaint_detail(
             "slogan": settings.project_slogan,
             "user": user,
             "complaint": complaint,
+            "status_labels": STATUS_LABELS,
         },
     )
+
+
+@router.post("/complaints/{complaint_id}/comments")
+async def add_complaint_comment(
+    request: Request,
+    complaint_id: int,
+    body: str = Form(...),
+    user: User = Depends(require_auth),
+    db: Session = Depends(get_db),
+):
+    complaint = db.get(Complaint, complaint_id)
+    if complaint is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Complaint not found")
+    if user.role == "citizen" and complaint.user_id != user.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Complaint not found")
+    if user.role not in {"citizen", "admin"}:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+
+    comment_body = body.strip()
+    if not comment_body:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Comment cannot be empty")
+
+    db.add(Comment(complaint_id=complaint.id, user_id=user.id, body=comment_body))
+    db.commit()
+    destination = f"/admin/complaints/{complaint.id}" if user.role == "admin" else f"/citizen/complaints/{complaint.id}"
+    return RedirectResponse(url=destination, status_code=status.HTTP_303_SEE_OTHER)
 
 
 @router.get("/admin")
@@ -566,18 +620,14 @@ async def admin_complaint_detail(
 ):
     complaint = db.scalar(
         select(Complaint)
-        .options(
-            selectinload(Complaint.user),
-            selectinload(Complaint.category),
-            selectinload(Complaint.department),
-            selectinload(Complaint.updates),
-        )
+        .options(selectinload(Complaint.user), *complaint_detail_options())
         .where(Complaint.id == complaint_id)
     )
     if complaint is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Complaint not found")
 
     complaint.updates = sorted(complaint.updates, key=lambda item: item.created_at, reverse=True)
+    complaint.comments = sorted(complaint.comments, key=lambda item: item.created_at)
     departments = db.scalars(select(Department).order_by(Department.name.asc())).all()
     return templates.TemplateResponse(
         request,
@@ -588,6 +638,7 @@ async def admin_complaint_detail(
             "slogan": settings.project_slogan,
             "complaint": complaint,
             "departments": departments,
+            "status_labels": STATUS_LABELS,
         },
     )
 
@@ -600,6 +651,7 @@ async def admin_complaint_update(
     priority: str = Form(default="medium"),
     status_value: str = Form(default="new"),
     routing_reason: str = Form(default=""),
+    admin_note: str = Form(default=""),
     user: User = Depends(require_role("admin")),
     db: Session = Depends(get_db),
 ):
@@ -612,10 +664,13 @@ async def admin_complaint_update(
     if status_value not in ALLOWED_STATUSES:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid status value")
 
-    old_status = complaint.status
+    original_status = complaint.status
+    old_status = original_status
     old_priority = complaint.priority
+    previous_department_id = complaint.department_id
+    previous_department_name = complaint.department.name if complaint.department else None
 
-    if department_id is not None:
+    if department_id is not None and department_id != previous_department_id:
         department = db.get(Department, department_id)
         if department is None:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Selected department is invalid")
@@ -623,27 +678,40 @@ async def admin_complaint_update(
         complaint.assigned_at = datetime.now(timezone.utc)
         if complaint.status == "new":
             complaint.status = "assigned"
-        note = routing_reason.strip() or f"تم توجيه البلاغ إلى {department.name}"
-        complaint.routing_reason = note
+        if previous_department_name:
+            note = f"تم تغيير الجهة المختصة من {previous_department_name} إلى {department.name}"
+        else:
+            note = f"تم توجيه البلاغ إلى {department.name}"
+        complaint.routing_reason = routing_reason.strip() or note
         add_complaint_history(db, complaint, user, note, old_status)
         old_status = complaint.status
 
     if priority and priority != old_priority:
-        note = f"تم تحديث الأولوية من {old_priority} إلى {priority}"
+        note = f"تم تغيير الأولوية من {old_priority} إلى {priority}"
         complaint.priority = priority
         add_complaint_history(db, complaint, user, note, complaint.status)
 
-    if status_value and status_value != old_status:
-        note = f"تم تحديث الحالة من {old_status} إلى {status_value}"
+    if status_value and status_value != original_status:
+        status_before_change = complaint.status
+        if status_value == "resolved":
+            note = "تم حل البلاغ"
+        elif status_value == "closed":
+            note = "تم إغلاق البلاغ"
+        else:
+            note = f"تم تغيير الحالة من {STATUS_LABELS[status_before_change]} إلى {STATUS_LABELS[status_value]}"
         complaint.status = status_value
         if status_value == "resolved" and complaint.resolved_at is None:
             complaint.resolved_at = datetime.now(timezone.utc)
         if status_value != "resolved" and complaint.resolved_at is not None and status_value != "closed":
             complaint.resolved_at = None
-        add_complaint_history(db, complaint, user, note, old_status)
+        add_complaint_history(db, complaint, user, note, status_before_change)
 
-    if complaint.department_id is None and routing_reason.strip() and status_value == "new":
+    if complaint.department_id is None and routing_reason.strip() and routing_reason.strip() != (complaint.routing_reason or ""):
         complaint.routing_reason = routing_reason.strip()
+        add_complaint_history(db, complaint, user, "تمت إضافة ملاحظة إدارية", complaint.status)
+
+    if admin_note.strip():
+        add_complaint_history(db, complaint, user, f"تمت إضافة ملاحظة إدارية: {admin_note.strip()}", complaint.status)
 
     complaint.updated_at = datetime.now(timezone.utc)
     db.commit()
